@@ -1,0 +1,12 @@
+go 🟢 speed <- 120
+hold 🟢 limit <- 90
+
+check speed ≠ limit 🚥 {
+    go 🚦 warning <- green
+    hold 🟢 safe_speed <- limit
+    sign 🛣️ ROAD_CODE <- 101
+    speed <- safe_speed
+} detour {
+    go 🚦 warning <- red
+    speed <- limit
+}

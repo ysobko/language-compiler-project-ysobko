@@ -1,0 +1,25 @@
+Program
+  ImmutableDecl 🟢 speed_limit
+    Integer 90
+  MutableDecl 🚦 exact_limit
+    Boolean false
+  MutableDecl 🚦 road_open
+    Boolean true
+  MutableDecl 🚦 status_match
+    Boolean false
+  If
+    Condition
+      Comparison ≡
+        Integer 90
+        Identifier speed_limit
+    Then
+      Assignment exact_limit
+        Boolean true
+  If
+    Condition
+      Comparison ≠
+        Boolean false
+        Identifier road_open
+    Then
+      Assignment status_match
+        Boolean true

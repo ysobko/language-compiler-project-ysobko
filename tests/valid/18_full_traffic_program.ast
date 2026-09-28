@@ -1,0 +1,56 @@
+Program
+  ConstantDecl 🛣️ ROUTE_LENGTH
+    Integer 8500000000
+  ConstantDecl 🟢 DEFAULT_LIMIT
+    Integer 90
+  ImmutableDecl 🟢 minimum_speed
+    Integer 0
+  MutableDecl 🟢 current_speed
+    Integer 120
+  MutableDecl 🟢 active_limit
+    Identifier DEFAULT_LIMIT
+  MutableDecl 🚦 road_open
+    Boolean true
+  MutableDecl 🚦 speeding
+    Boolean false
+  MutableDecl 🚦 stopped
+    Boolean false
+  If
+    Condition
+      Comparison ≡
+        Identifier road_open
+        Boolean true
+    Then
+      If
+        Condition
+          Comparison ≠
+            Identifier current_speed
+            Identifier active_limit
+        Then
+          Assignment speeding
+            Boolean true
+          Assignment current_speed
+            Identifier active_limit
+        Else
+          Assignment speeding
+            Boolean false
+      If
+        Condition
+          Comparison ≡
+            Identifier current_speed
+            Identifier minimum_speed
+        Then
+          Assignment stopped
+            Boolean true
+        Else
+          Assignment stopped
+            Boolean false
+    Else
+      Assignment road_open
+        Boolean false
+      Assignment current_speed
+        Identifier minimum_speed
+      Assignment stopped
+        Boolean true
+  Assignment current_speed
+    Identifier DEFAULT_LIMIT

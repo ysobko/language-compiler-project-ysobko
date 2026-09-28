@@ -1,0 +1,6 @@
+go 🟢 speed <- 120
+go 🚦 warning <- red
+
+check speed ≠ 🚥 {
+    warning <- green
+}

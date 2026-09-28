@@ -1,0 +1,39 @@
+Program
+  MutableDecl 🟢 speed
+    Integer 120
+  ImmutableDecl 🟢 limit
+    Integer 90
+  MutableDecl 🚦 warning
+    Boolean false
+  MutableDecl 🚦 stopped
+    Boolean false
+  If
+    Condition
+      Comparison ≠
+        Identifier speed
+        Identifier limit
+    Then
+      Assignment warning
+        Boolean true
+      If
+        Condition
+          Comparison ≡
+            Identifier warning
+            Boolean true
+        Then
+          Assignment speed
+            Identifier limit
+          If
+            Condition
+              Comparison ≡
+                Identifier speed
+                Identifier limit
+            Then
+              Assignment stopped
+                Boolean false
+            Else
+              Assignment stopped
+                Boolean true
+    Else
+      Assignment warning
+        Boolean false

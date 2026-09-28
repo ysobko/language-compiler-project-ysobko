@@ -1,0 +1,12 @@
+hold 🟢 speed_limit <- 90
+go 🟢 current_speed <- 120
+go 🚦 speeding <- red
+go 🚦 stopped <- red
+
+check current_speed ≠ speed_limit 🚥 {
+    speeding <- green
+    check speeding ≡ green 🚥 {
+        current_speed <- speed_limit
+        stopped <- red
+    }
+}

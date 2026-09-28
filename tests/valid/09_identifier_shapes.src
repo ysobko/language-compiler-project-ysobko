@@ -1,0 +1,7 @@
+sign 🛣️ MAX_DISTANCE <- 5000000000
+hold 🟢 speed2 <- 90
+go 🟢 _current_speed <- speed2
+go 🚦 road_42_open <- green
+
+_current_speed <- MAX_DISTANCE
+road_42_open <- red

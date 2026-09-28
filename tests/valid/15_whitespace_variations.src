@@ -1,0 +1,10 @@
+go	🟢	speed	<-	60
+hold    🟢    limit    <-    90
+
+go	🚦	allowed	<-	red
+
+check	speed	≠	limit	🚥	{
+	allowed	<-	green
+}	detour	{
+    allowed    <-    red
+}

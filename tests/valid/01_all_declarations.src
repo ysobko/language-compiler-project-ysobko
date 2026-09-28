@@ -1,0 +1,3 @@
+go 🟢 speed <- 60
+hold 🛣️ distance <- 5000000000
+sign 🚦 ROAD_OPEN <- green

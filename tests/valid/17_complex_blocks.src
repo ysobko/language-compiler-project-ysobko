@@ -1,0 +1,18 @@
+sign 🛣️ ROUTE_DISTANCE <- 7500000000
+hold 🟢 speed_limit <- 90
+go 🟢 current_speed <- 110
+go 🚦 route_open <- green
+
+check current_speed ≠ speed_limit 🚥 {
+    hold 🟢 safe_speed <- speed_limit
+    go 🚦 warning <- green
+    current_speed <- safe_speed
+    route_open <- red
+} detour {
+    sign 🚦 NORMAL_TRAFFIC <- green
+    current_speed <- speed_limit
+    route_open <- NORMAL_TRAFFIC
+}
+
+current_speed <- 80
+route_open <- green

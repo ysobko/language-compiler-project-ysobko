@@ -1,0 +1,9 @@
+go 🟢 temperature <- -15
+hold 🟢 freezing_point <- 0
+go 🚦 below_freezing <- red
+
+temperature <- -25
+
+check temperature ≠ -10 🚥 {
+    below_freezing <- green
+}

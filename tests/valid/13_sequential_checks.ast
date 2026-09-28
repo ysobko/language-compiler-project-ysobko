@@ -1,0 +1,33 @@
+Program
+  MutableDecl 🟢 speed
+    Integer 120
+  ImmutableDecl 🟢 speed_limit
+    Integer 90
+  MutableDecl 🚦 speeding
+    Boolean false
+  MutableDecl 🚦 stopped
+    Boolean false
+  If
+    Condition
+      Comparison ≠
+        Identifier speed
+        Identifier speed_limit
+    Then
+      Assignment speeding
+        Boolean true
+    Else
+      Assignment speeding
+        Boolean false
+  If
+    Condition
+      Comparison ≡
+        Identifier speed
+        Integer 0
+    Then
+      Assignment stopped
+        Boolean true
+    Else
+      Assignment stopped
+        Boolean false
+  Assignment speed
+    Identifier speed_limit

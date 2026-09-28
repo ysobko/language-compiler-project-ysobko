@@ -1,0 +1,16 @@
+hold 🟢 speed_limit <- 90
+go 🟢 current_speed <- 120
+go 🚦 speeding <- red
+go 🚦 warning <- red
+
+check current_speed ≠ speed_limit 🚥 {
+    speeding <- green
+    check speeding ≡ green 🚥 {
+        warning <- green
+    } detour {
+        warning <- red
+    }
+} detour {
+    speeding <- red
+    warning <- red
+}

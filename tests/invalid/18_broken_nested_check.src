@@ -1,0 +1,10 @@
+go 🟢 speed <- 120
+hold 🟢 limit <- 90
+go 🚦 warning <- red
+
+check speed ≠ limit 🚥 {
+    warning <- green
+
+    check warning ≡ green 🚥 {
+        speed <- limit
+    }

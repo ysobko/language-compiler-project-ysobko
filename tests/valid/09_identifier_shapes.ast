@@ -1,0 +1,13 @@
+Program
+  ConstantDecl 🛣️ MAX_DISTANCE
+    Integer 5000000000
+  ImmutableDecl 🟢 speed2
+    Integer 90
+  MutableDecl 🟢 _current_speed
+    Identifier speed2
+  MutableDecl 🚦 road_42_open
+    Boolean true
+  Assignment _current_speed
+    Identifier MAX_DISTANCE
+  Assignment road_42_open
+    Boolean false

@@ -1,0 +1,17 @@
+Program
+  MutableDecl 🟢 temperature
+    Integer -15
+  ImmutableDecl 🟢 freezing_point
+    Integer 0
+  MutableDecl 🚦 below_freezing
+    Boolean false
+  Assignment temperature
+    Integer -25
+  If
+    Condition
+      Comparison ≠
+        Identifier temperature
+        Integer -10
+    Then
+      Assignment below_freezing
+        Boolean true

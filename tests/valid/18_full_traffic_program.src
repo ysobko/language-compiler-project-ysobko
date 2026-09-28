@@ -1,0 +1,30 @@
+sign 🛣️ ROUTE_LENGTH <- 8500000000
+sign 🟢 DEFAULT_LIMIT <- 90
+hold 🟢 minimum_speed <- 0
+
+go 🟢 current_speed <- 120
+go 🟢 active_limit <- DEFAULT_LIMIT
+go 🚦 road_open <- green
+go 🚦 speeding <- red
+go 🚦 stopped <- red
+
+check road_open ≡ green 🚥 {
+    check current_speed ≠ active_limit 🚥 {
+        speeding <- green
+        current_speed <- active_limit
+    } detour {
+        speeding <- red
+    }
+
+    check current_speed ≡ minimum_speed 🚥 {
+        stopped <- green
+    } detour {
+        stopped <- red
+    }
+} detour {
+    road_open <- red
+    current_speed <- minimum_speed
+    stopped <- green
+}
+
+current_speed <- DEFAULT_LIMIT

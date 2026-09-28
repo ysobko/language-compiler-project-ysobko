@@ -1,0 +1,34 @@
+Program
+  ConstantDecl 🛣️ ROUTE_DISTANCE
+    Integer 7500000000
+  ImmutableDecl 🟢 speed_limit
+    Integer 90
+  MutableDecl 🟢 current_speed
+    Integer 110
+  MutableDecl 🚦 route_open
+    Boolean true
+  If
+    Condition
+      Comparison ≠
+        Identifier current_speed
+        Identifier speed_limit
+    Then
+      ImmutableDecl 🟢 safe_speed
+        Identifier speed_limit
+      MutableDecl 🚦 warning
+        Boolean true
+      Assignment current_speed
+        Identifier safe_speed
+      Assignment route_open
+        Boolean false
+    Else
+      ConstantDecl 🚦 NORMAL_TRAFFIC
+        Boolean true
+      Assignment current_speed
+        Identifier speed_limit
+      Assignment route_open
+        Identifier NORMAL_TRAFFIC
+  Assignment current_speed
+    Integer 80
+  Assignment route_open
+    Boolean true
