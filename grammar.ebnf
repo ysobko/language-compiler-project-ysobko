@@ -1,0 +1,106 @@
+(* Traffic-themed programming language *)
+
+(* Lexical rules:
+
+   - spaces and tabs between tokens are ignored
+
+   - newline is significant and separates line statements
+
+   - blank lines are allowed
+
+   - identifiers use ASCII letters, digits and underscore
+
+   - identifier can't start with digit
+
+   - integer literals may be negative
+
+   - reserved words:      go, hold, sign, check, detour, green, red
+
+   - reserved emoji tokens:     🟢, 🛣️, 🚦, 🚥
+
+*)
+
+program ::= { newline | statement }
+
+statement ::= lineStatement newline | ifStatement
+
+lineStatement ::= decl | assign
+
+decl ::= mutableDecl | immutableDecl | constantDecl
+
+mutableDecl ::= "go" type ident "<-" value
+
+immutableDecl ::= "hold" type ident "<-" value
+
+constantDecl ::= "sign" type ident "<-" value
+
+assign ::= ident "<-" value
+
+ifStatement ::= "check" comparison "🚥" "{" newline block "}" [ "detour" "{" newline block "}" ] newline
+
+block ::= { newline } statement { newline | statement }
+
+comparison ::= value compOp value
+
+compOp ::= "≡" | "≠"
+
+type ::= "🟢" | "🛣️" | "🚦"
+
+value ::= integer | boolean | ident
+
+boolean ::= "green" | "red"
+
+integer ::= [ "-" ] digit { digit }
+
+ident ::= ( letter | "_" ) { letter | digit | "_" }
+
+newline ::= "\n"
+
+digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G"
+
+         | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+
+         | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+
+         | "V" | "W" | "X" | "Y" | "Z"
+
+         | "a" | "b" | "c" | "d" | "e" | "f" | "g"
+
+         | "h" | "i" | "j" | "k" | "l" | "m" | "n"
+
+         | "o" | "p" | "q" | "r" | "s" | "t" | "u"
+
+         | "v" | "w" | "x" | "y" | "z"
+
+
+(* Language rules:
+
+   go      - mutable variable
+   hold    - immutable variable
+   sign    - named constant
+
+   🟢      - signed 32-bit integer (-2147483648 .. 2147483647)
+   🛣️      - signed 64-bit integer (-9223372036854775808 .. 9223372036854775807)
+   🚦      - boolean type
+
+   green   - true
+   red     - false
+
+   <-      - assignment
+   ≡       - equality comparison
+   ≠       - inequality comparison
+
+   check   - equivalent of "if"
+   detour  - equivalent of "else"
+
+   Check block must contain at least one statement.
+   Detour block, when present, must contain at least one statement.
+   Detour clause is optional.
+
+   Integer values are overflow-checked.
+   Value assigned to an integer variable must fit the range
+   of its declared type.
+   Overflow checking is semantic rule of the language.
+*)
