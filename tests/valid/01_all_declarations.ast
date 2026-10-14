@@ -1,0 +1,7 @@
+Program
+  MutableDecl 🟢 speed
+    Integer 60
+  ImmutableDecl 🛣️ distance
+    Integer 5000000000
+  ConstantDecl 🚦 ROAD_OPEN
+    Boolean true

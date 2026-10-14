@@ -1,0 +1,9 @@
+Program
+  ImmutableDecl 🟢 speed_limit
+    Integer 90
+  MutableDecl 🟢 current_speed
+    Identifier speed_limit
+  MutableDecl 🟢 previous_speed
+    Identifier current_speed
+  Assignment current_speed
+    Identifier previous_speed

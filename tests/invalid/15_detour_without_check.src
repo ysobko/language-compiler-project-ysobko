@@ -1,0 +1,6 @@
+go 🟢 speed <- 90
+go 🚦 warning <- red
+
+detour {
+    warning <- green
+}

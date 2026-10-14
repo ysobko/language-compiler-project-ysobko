@@ -1,0 +1,10 @@
+go 🚦 numbers_match <- red
+go 🚦 signals_differ <- red
+
+check 100 ≡ 100 🚥 {
+    numbers_match <- green
+}
+
+check green ≠ red 🚥 {
+    signals_differ <- green
+}

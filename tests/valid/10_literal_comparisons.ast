@@ -1,0 +1,21 @@
+Program
+  MutableDecl 🚦 numbers_match
+    Boolean false
+  MutableDecl 🚦 signals_differ
+    Boolean false
+  If
+    Condition
+      Comparison ≡
+        Integer 100
+        Integer 100
+    Then
+      Assignment numbers_match
+        Boolean true
+  If
+    Condition
+      Comparison ≠
+        Boolean true
+        Boolean false
+    Then
+      Assignment signals_differ
+        Boolean true

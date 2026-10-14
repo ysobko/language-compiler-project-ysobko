@@ -1,0 +1,6 @@
+go 🟢 speed <- 120
+hold 🟢 limit <- 90
+
+check speed <- limit 🚥 {
+    speed <- limit
+}

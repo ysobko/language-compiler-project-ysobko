@@ -1,0 +1,7 @@
+go 🟢 current_speed <- -25
+go 🛣️ total_distance <- 9000000000
+go 🚦 traffic_allowed <- red
+
+current_speed <- 80
+total_distance <- 12000000000
+traffic_allowed <- green

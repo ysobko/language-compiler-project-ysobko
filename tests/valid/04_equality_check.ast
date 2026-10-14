@@ -1,0 +1,15 @@
+Program
+  ImmutableDecl 🟢 speed_limit
+    Integer 90
+  MutableDecl 🟢 current_speed
+    Integer 90
+  MutableDecl 🚦 within_limit
+    Boolean false
+  If
+    Condition
+      Comparison ≡
+        Identifier current_speed
+        Identifier speed_limit
+    Then
+      Assignment within_limit
+        Boolean true

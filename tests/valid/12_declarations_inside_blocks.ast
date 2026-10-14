@@ -1,0 +1,24 @@
+Program
+  MutableDecl 🟢 speed
+    Integer 120
+  ImmutableDecl 🟢 limit
+    Integer 90
+  If
+    Condition
+      Comparison ≠
+        Identifier speed
+        Identifier limit
+    Then
+      MutableDecl 🚦 warning
+        Boolean true
+      ImmutableDecl 🟢 safe_speed
+        Identifier limit
+      ConstantDecl 🛣️ ROAD_CODE
+        Integer 101
+      Assignment speed
+        Identifier safe_speed
+    Else
+      MutableDecl 🚦 warning
+        Boolean false
+      Assignment speed
+        Identifier limit

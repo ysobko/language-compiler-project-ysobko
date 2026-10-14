@@ -1,0 +1,13 @@
+Program
+  MutableDecl 🟢 current_speed
+    Integer -25
+  MutableDecl 🛣️ total_distance
+    Integer 9000000000
+  MutableDecl 🚦 traffic_allowed
+    Boolean false
+  Assignment current_speed
+    Integer 80
+  Assignment total_distance
+    Integer 12000000000
+  Assignment traffic_allowed
+    Boolean true

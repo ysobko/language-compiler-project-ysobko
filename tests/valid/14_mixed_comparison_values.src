@@ -1,0 +1,12 @@
+hold 🟢 speed_limit <- 90
+go 🚦 exact_limit <- red
+go 🚦 road_open <- green
+go 🚦 status_match <- red
+
+check 90 ≡ speed_limit 🚥 {
+    exact_limit <- green
+}
+
+check red ≠ road_open 🚥 {
+    status_match <- green
+}
