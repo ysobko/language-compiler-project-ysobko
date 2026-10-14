@@ -10,6 +10,12 @@ KEYWORDS = {
     "detour": TokenKind.DETOUR,
     "green": TokenKind.GREEN,
     "red": TokenKind.RED,
+
+    "route": TokenKind.ROUTE,
+    "arrive": TokenKind.ARRIVE,
+    "map": TokenKind.MAP,
+    "scan": TokenKind.SCAN,
+    "print": TokenKind.PRINT,
 }
 
 
@@ -122,6 +128,43 @@ class Lexer:
             start_column
         )
 
+    def read_string(self):
+        start_line = self.line
+        start_column = self.column
+
+        self.advance()  # opening "
+
+        start_pos = self.pos
+
+        while self.pos < len(self.source):
+            byte = self.peek()
+
+            if byte == ord('"'):
+                text = self.source[start_pos:self.pos].decode("utf-8")
+                self.advance()
+
+                return Token(
+                    TokenKind.STRING,
+                    text,
+                    start_line,
+                    start_column
+                )
+
+            if byte == ord("\n"):
+                raise CompilationError(
+                    self.line,
+                    self.column,
+                    "newline in string literal"
+                )
+
+            self.advance()
+
+        raise CompilationError(
+            start_line,
+            start_column,
+            "unterminated string literal"
+        )
+
     def read_multibyte_token(self):
         start_line = self.line
         start_column = self.column
@@ -185,6 +228,26 @@ class Lexer:
                 continue
 
             if (
+                byte == ord("-")
+                and self.peek(1) == ord(">")
+            ):
+                line = self.line
+                column = self.column
+
+                self.advance()
+                self.advance()
+
+                tokens.append(
+                    Token(
+                        TokenKind.ARROW,
+                        "->",
+                        line,
+                        column
+                    )
+                )
+                continue
+
+            if (
                 byte == ord("<")
                 and self.peek(1) == ord("-")
             ):
@@ -207,33 +270,59 @@ class Lexer:
             if byte == ord("{"):
                 line = self.line
                 column = self.column
-
                 self.advance()
-
                 tokens.append(
-                    Token(
-                        TokenKind.LBRACE,
-                        "{",
-                        line,
-                        column
-                    )
+                    Token(TokenKind.LBRACE, "{", line, column)
                 )
                 continue
 
             if byte == ord("}"):
                 line = self.line
                 column = self.column
-
                 self.advance()
-
                 tokens.append(
-                    Token(
-                        TokenKind.RBRACE,
-                        "}",
-                        line,
-                        column
-                    )
+                    Token(TokenKind.RBRACE, "}", line, column)
                 )
+                continue
+
+            if byte == ord("("):
+                line = self.line
+                column = self.column
+                self.advance()
+                tokens.append(
+                    Token(TokenKind.LPAREN, "(", line, column)
+                )
+                continue
+
+            if byte == ord(")"):
+                line = self.line
+                column = self.column
+                self.advance()
+                tokens.append(
+                    Token(TokenKind.RPAREN, ")", line, column)
+                )
+                continue
+
+            if byte == ord(","):
+                line = self.line
+                column = self.column
+                self.advance()
+                tokens.append(
+                    Token(TokenKind.COMMA, ",", line, column)
+                )
+                continue
+
+            if byte == ord("."):
+                line = self.line
+                column = self.column
+                self.advance()
+                tokens.append(
+                    Token(TokenKind.DOT, ".", line, column)
+                )
+                continue
+
+            if byte == ord('"'):
+                tokens.append(self.read_string())
                 continue
 
             if byte >= 128:
