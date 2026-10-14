@@ -365,7 +365,7 @@ warning <- green
 
 Compiler Structure
 
-The Stage 1 compiler consists of:
+The compiler consists of:
 
 * lexer.py — hand-written byte lexer
 * tokens.py — token kinds and token representation

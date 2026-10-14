@@ -15,7 +15,7 @@
    - integer literals may be negative
 
    - string literals are enclosed in double quotes
-     and cannot contain a newline or an unescaped double quote
+     and cannot contain a newline or a double quote
 
    - reserved words:
      go, hold, sign, check, detour, green, red,
@@ -43,7 +43,10 @@ topLevelStatement ::= lineStatement newline
 
 lineStatement ::= decl
                 | assign
+                | callStatement
                 | printStatement
+
+callStatement ::= functionCall | memberCall
 
 decl ::= mutableDecl | immutableDecl | constantDecl
 
@@ -138,6 +141,9 @@ objectCreation ::= ident "{" [ argumentList ] "}"
 
 chain ::= ident "." ident { "." ident }
           [ "(" [ argumentList ] ")" ]
+
+memberCall ::= ident "." ident { "." ident }
+               "(" [ argumentList ] ")"
 
 fieldChain ::= ident "." ident { "." ident }
 
