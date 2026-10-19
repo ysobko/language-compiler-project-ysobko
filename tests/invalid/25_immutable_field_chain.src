@@ -1,0 +1,8 @@
+map Inner {
+go 🟢 value
+}
+map Outer {
+hold Inner inner
+}
+go Outer obj <- Outer{Inner{10}}
+obj.inner.value <- 20

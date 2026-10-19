@@ -1,0 +1,8 @@
+route factorial(🟢 n) -> 🟢 {
+check n ≡ 0 🚥 {
+arrive 1
+} detour {
+arrive n * factorial(n - 1)
+}
+}
+print(factorial(5))
