@@ -7,6 +7,7 @@ from ast_nodes import (
     StringNode,
     IdentifierNode,
     ComparisonNode,
+    BinaryOpNode,
     FunctionCallNode,
     ObjectCreationNode,
     FieldAccessNode,
@@ -54,7 +55,57 @@ class Parser:
         return token
 
     def parse_expression(self, allow_object_creation=True):
+        return self.parse_additive(allow_object_creation)
+
+    def parse_additive(self, allow_object_creation=True):
+        left = self.parse_multiplicative(allow_object_creation)
+
+        while self.peek().kind in (TokenKind.PLUS, TokenKind.MINUS):
+            operator = self.peek()
+            self.pos += 1
+
+            right = self.parse_multiplicative(
+                allow_object_creation
+            )
+
+            left = BinaryOpNode(
+                line=operator.line,
+                column=operator.column,
+                left=left,
+                operator=operator.text,
+                right=right
+            )
+
+        return left
+
+    def parse_multiplicative(self, allow_object_creation=True):
+        left = self.parse_primary(allow_object_creation)
+
+        while self.peek().kind == TokenKind.STAR:
+            operator = self.eat(TokenKind.STAR)
+
+            right = self.parse_primary(allow_object_creation)
+
+            left = BinaryOpNode(
+                line=operator.line,
+                column=operator.column,
+                left=left,
+                operator=operator.text,
+                right=right
+            )
+
+        return left
+
+    def parse_primary(self, allow_object_creation=True):
         token = self.peek()
+
+        if token.kind == TokenKind.LPAREN:
+            self.eat(TokenKind.LPAREN)
+            expression = self.parse_expression(
+                allow_object_creation=allow_object_creation
+            )
+            self.eat(TokenKind.RPAREN)
+            return expression
 
         if token.kind == TokenKind.INTEGER:
             self.eat(TokenKind.INTEGER)

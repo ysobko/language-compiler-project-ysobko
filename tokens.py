@@ -32,6 +32,10 @@ class TokenKind(Enum):
     EQUAL = "EQUAL"
     NOT_EQUAL = "NOT_EQUAL"
 
+    PLUS = "PLUS"
+    MINUS = "MINUS"
+    STAR = "STAR"
+
     CONDITION_MARKER = "CONDITION_MARKER"
 
     LBRACE = "LBRACE"

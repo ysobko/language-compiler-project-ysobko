@@ -5,6 +5,7 @@ from ast_nodes import (
     StringNode,
     IdentifierNode,
     ComparisonNode,
+    BinaryOpNode,
     FunctionCallNode,
     ObjectCreationNode,
     FieldAccessNode,
@@ -184,6 +185,14 @@ def dump_ast(node, indent=0):
         for argument in node.arguments:
             lines.append(dump_ast(argument, indent + 1))
 
+        return "\n".join(lines)
+
+    if isinstance(node, BinaryOpNode):
+        lines = [
+            f"{prefix}BinaryOp {node.operator}",
+            dump_ast(node.left, indent + 1),
+            dump_ast(node.right, indent + 1),
+        ]
         return "\n".join(lines)
 
     if isinstance(node, ComparisonNode):

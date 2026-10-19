@@ -52,6 +52,13 @@ class ComparisonNode(ExprNode):
 
 
 @dataclass
+class BinaryOpNode(ExprNode):
+    left: ExprNode
+    operator: str
+    right: ExprNode
+
+
+@dataclass
 class FunctionCallNode(ExprNode):
     name: str
     arguments: list[ExprNode]

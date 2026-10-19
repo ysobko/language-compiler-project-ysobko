@@ -25,7 +25,7 @@
      🟢, 🛣️, 🚦, 🚥
 
    - reserved symbol tokens:
-     <-, ->, ≡, ≠, {, }, (, ), ".", ","
+     <-, ->, ≡, ≠, +, -, *, {, }, (, ), ".", ","
 
 *)
 
@@ -127,11 +127,20 @@ ifFunctionStatement ::= "check" comparison "🚥" "{"
 
 (* Expressions *)
 
-expression ::= value
-             | functionCall
-             | objectCreation
-             | chain
-             | scanExpr
+expression ::= additiveExpr
+
+additiveExpr ::= multiplicativeExpr
+                 { ( "+" | "-" ) multiplicativeExpr }
+
+multiplicativeExpr ::= primaryExpr
+                       { "*" primaryExpr }
+
+primaryExpr ::= value
+              | functionCall
+              | objectCreation
+              | chain
+              | scanExpr
+              | "(" expression ")"
 
 functionCall ::= ident "(" [ argumentList ] ")"
 
@@ -232,6 +241,19 @@ letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G"
    Check block must contain at least one statement.
    Detour block, when present, must contain at least one statement.
    Detour clause is optional.
+
+   Arithmetic operators:
+
+   +       - addition
+   -       - subtraction
+   *       - multiplication
+
+   Multiplication has higher precedence than addition
+   and subtraction.
+
+   Parentheses can override operator precedence.
+
+   Arithmetic is defined for integer types only.
 
    Integer values are overflow-checked.
    Value assigned to an integer variable must fit the range

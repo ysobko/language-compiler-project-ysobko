@@ -223,6 +223,23 @@ class Lexer:
                 byte == ord("-")
                 and self.peek(1) is not None
                 and is_digit(self.peek(1))
+                and (
+                    not tokens
+                    or tokens[-1].kind in (
+                        TokenKind.ASSIGN,
+                        TokenKind.ARROW,
+                        TokenKind.LPAREN,
+                        TokenKind.COMMA,
+                        TokenKind.PLUS,
+                        TokenKind.MINUS,
+                        TokenKind.STAR,
+                        TokenKind.EQUAL,
+                        TokenKind.NOT_EQUAL,
+                        TokenKind.CONDITION_MARKER,
+                        TokenKind.NEWLINE,
+                        TokenKind.LBRACE,
+                    )
+                )
             ):
                 tokens.append(self.read_integer())
                 continue
@@ -261,6 +278,29 @@ class Lexer:
                     Token(
                         TokenKind.ASSIGN,
                         "<-",
+                        line,
+                        column
+                    )
+                )
+                continue
+
+            arithmetic_tokens = {
+                ord("+"): TokenKind.PLUS,
+                ord("-"): TokenKind.MINUS,
+                ord("*"): TokenKind.STAR,
+            }
+
+            if byte in arithmetic_tokens:
+                line = self.line
+                column = self.column
+                operator = chr(byte)
+
+                self.advance()
+
+                tokens.append(
+                    Token(
+                        arithmetic_tokens[byte],
+                        operator,
                         line,
                         column
                     )
