@@ -4,6 +4,7 @@ Traffica is a small traffic-themed programming language with custom keywords and
 
 - **Stage 1:** Variables, constants, assignments, comparisons, and conditional statements.
 - **Stage 2:** Functions, structures, member functions, arithmetic, input/output, semantic analysis, and LLVM code generation.
+- **Stage 3:** Piping, interactive program, and AST optimization.
 
 The complete language grammar is defined in [`grammar.ebnf`](grammar.ebnf).
 
@@ -454,8 +455,9 @@ Executable
 | `compiler.py` | Compiler CLI |
 | `errors.py` | Compilation errors |
 | `grammar.ebnf` | Language grammar |
-| `run_tests.py` | Stage 1 test runner |
-| `tests/` | Valid and invalid Stage 1 programs |
+| `run_tests.py` | Test runner for all stages and interactive sessions |
+| `tests/` | Valid and invalid programs for all stages |
+| `programs/` | Interactive program and recorded input/output sessions |
 
 ### LLVM Code Generation
 
@@ -503,10 +505,11 @@ Current test results:
 - 32 invalid programs.
 - 15 end-to-end execution tests.
 - 1 end-to-end test with input.
+- 3 interactive program sessions.
 
 A successful run ends with:
 
-    65/65 tests passed
+    68/68 tests passed
 
 The Piping feature has three valid and three invalid tests.
 These tests check function chaining, arithmetic expressions,
@@ -518,3 +521,94 @@ and incorrect argument counts.
 The complete EBNF grammar is available in [`grammar.ebnf`](grammar.ebnf).
 
 It covers Stage 1, Stage 2, and Stage 3 syntax, including functions, structures, member functions, expressions, field access, object creation, input/output, and piping.
+
+## Stage 3 — Interactive Program
+
+The program is located in `programs/traffic_checker.txt`.
+
+1. The program is an interactive traffic speed checker.
+2. It asks the user to enter a car's speed.
+3. The speed is read using the `scan()` function.
+4. The program processes the speed using the piping operator.
+5. The expression `speed |> addFive |> double` calls two functions from left to right.
+6. The first function adds 5 to the entered speed.
+7. The second function doubles the result.
+8. The `SpeedChecker` structure stores a speed limit of 60.
+9. Its member function `isDifferentFromLimit()` checks whether the adjusted speed differs from 60.
+10. The program prints the adjusted speed and the comparison result.
+
+### Compile to a Native Executable
+
+```bash
+python3 compiler.py programs/traffic_checker.txt /tmp/traffic_checker.ll
+llc -filetype=obj /tmp/traffic_checker.ll -o /tmp/traffic_checker.o
+clang /tmp/traffic_checker.o -o /tmp/traffic_checker
+```
+
+### Recorded Sessions
+
+**Session 1 — Adjusted speed equals the limit**
+
+Input: `25`
+
+```bash
+/tmp/traffic_checker < programs/traffic_checker_1.in
+```
+
+Expected output:
+
+```text
+Enter car speed:
+Adjusted speed:
+60
+Speed differs from limit:
+false
+```
+
+**Session 2 — Adjusted speed is greater than the limit**
+
+Input: `30`
+
+```bash
+/tmp/traffic_checker < programs/traffic_checker_2.in
+```
+
+Expected output:
+
+```text
+Enter car speed:
+Adjusted speed:
+70
+Speed differs from limit:
+true
+```
+
+**Session 3 — Adjusted speed is less than the limit**
+
+Input: `20`
+
+```bash
+/tmp/traffic_checker < programs/traffic_checker_3.in
+```
+
+Expected output:
+
+```text
+Enter car speed:
+Adjusted speed:
+50
+Speed differs from limit:
+true
+```
+
+### Automated Testing
+
+Run all compiler tests and the three recorded interactive sessions:
+
+```bash
+python3 run_tests.py
+```
+
+The test script compiles the interactive program into a native executable
+using `llc` and `clang`, then compares its output with the corresponding
+`.expected` files.

@@ -180,18 +180,93 @@ def run_invalid_tests():
     return passed, total
 
 
+
+def run_program_tests():
+    print("\nINTERACTIVE PROGRAM TESTS")
+
+    source_path = ROOT / "programs" / "traffic_checker.txt"
+    passed = 0
+    total = 0
+
+    with tempfile.TemporaryDirectory() as directory:
+        directory = Path(directory)
+        ir_path = directory / "traffic_checker.ll"
+        object_path = directory / "traffic_checker.o"
+        executable_path = directory / "traffic_checker"
+
+        compilation = run_compiler(source_path, output_path=ir_path)
+
+        if compilation.returncode != 0:
+            print(f"[FAIL] program compilation: {compilation.stderr}")
+            return 0, 3
+
+        llvm = subprocess.run(
+            ["llc", "-filetype=obj", str(ir_path), "-o", str(object_path)],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if llvm.returncode != 0:
+            print(f"[FAIL] llc: {llvm.stderr}")
+            return 0, 3
+
+        linking = subprocess.run(
+            ["clang", str(object_path), "-o", str(executable_path)],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if linking.returncode != 0:
+            print(f"[FAIL] clang: {linking.stderr}")
+            return 0, 3
+
+        for i in range(1, 4):
+            total += 1
+
+            input_path = ROOT / "programs" / f"traffic_checker_{i}.in"
+            expected_path = ROOT / "programs" / f"traffic_checker_{i}.expected"
+
+            if not input_path.exists() or not expected_path.exists():
+                print(f"[FAIL] traffic_checker_{i}: missing session files")
+                continue
+
+            execution = subprocess.run(
+                [str(executable_path)],
+                input=input_path.read_bytes(),
+                capture_output=True,
+                timeout=10,
+            )
+
+            expected = expected_path.read_bytes()
+
+            if execution.returncode == 0 and execution.stdout == expected:
+                passed += 1
+                print(f"[PASS] traffic_checker_{i}")
+            else:
+                print(f"[FAIL] traffic_checker_{i}")
+                print(f"  expected: {expected!r}")
+                print(f"  actual: {execution.stdout!r}")
+                print(f"  stderr: {execution.stderr!r}")
+
+    return passed, total
+
+
 def main():
     valid_passed, valid_total, end_to_end, input_tests = run_valid_tests()
     invalid_passed, invalid_total = run_invalid_tests()
+    program_passed, program_total = run_program_tests()
 
-    passed = valid_passed + invalid_passed
-    total = valid_total + invalid_total
+    passed = valid_passed + invalid_passed + program_passed
+    total = valid_total + invalid_total + program_total
 
     print(f"\n{passed}/{total} tests passed")
     print(f"Valid programs: {valid_total}")
     print(f"Invalid programs: {invalid_total}")
     print(f"End-to-end tests: {end_to_end}")
     print(f"End-to-end tests with input: {input_tests}")
+    print(f"Interactive program sessions: {program_total}")
 
     requirements_met = (
         valid_total >= 20
