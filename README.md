@@ -220,6 +220,154 @@ Point{x=10, y=20}
 
 Statements are separated by newlines. Blank lines are allowed, and spaces and tabs between tokens are ignored.
 
+### Stage 3: Piping
+
+Piping is a new language feature introduced in Stage 3.
+The `|>` operator passes the result of the expression on its left
+as an argument to the function on its right.
+
+#### Syntax and Rules
+
+```text
+expression |> functionName
+expression |> firstFunction |> secondFunction
+```
+
+- Piping is evaluated from left to right.
+- Each piping stage calls a function with one argument.
+- The result of one stage becomes the input of the next stage.
+- The operator `|>` has lower precedence than `+`, `-`, and `*`.
+- Each stage must refer to an existing function that accepts one argument.
+- The compiler checks whether the output type of one stage matches the input type of the next stage.
+- If the types are incompatible, compilation stops and reports the problematic stage.
+
+For example:
+
+```text
+10 |> double |> addFive
+```
+
+is equivalent to:
+
+```text
+addFive(double(10))
+```
+
+The parser represents piping as nested function calls in the AST.
+This allows the compiler to reuse the existing function call code generation.
+
+#### Example 1: Chaining Functions
+
+```text
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+route addFive(🟢 x) -> 🟢 {
+    arrive x + 5
+}
+
+go 🟢 result <- 10 |> double |> addFive
+print(result)
+```
+
+Output:
+
+```text
+25
+```
+
+The value 10 is first passed to `double`, which returns 20.
+Then 20 is passed to `addFive`, which returns 25.
+
+#### Example 2: Piping with Arithmetic
+
+```text
+route square(🟢 x) -> 🟢 {
+    arrive x * x
+}
+
+route addThree(🟢 x) -> 🟢 {
+    arrive x + 3
+}
+
+print((2 + 4) |> square |> addThree)
+```
+
+Output:
+
+```text
+39
+```
+
+The arithmetic expression `(2 + 4)` is evaluated first.
+The result 6 is passed to `square`, producing 36.
+Finally, `addThree` returns 39.
+
+#### Type Checking
+
+Each piping stage must accept the type produced by the previous stage.
+
+For example, this program is invalid:
+
+```text
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+route checkStatus(🚦 status) -> 🚦 {
+    arrive status
+}
+
+print(10 |> double |> checkStatus)
+```
+
+The `double` function returns an `🟢` integer, but
+`checkStatus` expects a `🚦` boolean.
+
+The compiler reports:
+
+```text
+compilation error: line 9:23: Piping stage 'checkStatus' expects 🚦, got 🟢
+```
+
+#### Generated LLVM IR
+
+The following excerpt is taken from the LLVM IR generated for Example 1:
+
+```llvm
+define i32 @"main"()
+{
+entry:
+  %"call.double" = call i32 @"traffica_double"(i32 10)
+  %"call.addFive" = call i32 @"traffica_addFive"(i32 %"call.double")
+  store i32 %"call.addFive", i32* @"traffica_global_result"
+  %"result.global.value" = load i32, i32* @"traffica_global_result"
+  %".3" = call i32 (i8*, ...) @"printf"(i8* getelementptr ([4 x i8], [4 x i8]* @"traffica_fmt_print_i32", i32 0, i32 0), i32 %"result.global.value")
+  ret i32 0
+}
+```
+
+The first function call passes the value 10 to `traffica_double`.
+The second function call passes the result of `double` to `traffica_addFive`, showing how piping is executed from left to right.
+Finally, the result is stored in the variable and printed using `printf`.
+
+#### Testing
+
+Piping is covered by three valid and three invalid test programs.
+
+Valid tests:
+- `piping_chain`
+- `piping_arithmetic`
+- `piping_single`
+
+Invalid tests:
+- `piping_type_mismatch`
+- `piping_unknown_function`
+- `piping_wrong_arguments`
+
+All tests are executed using `python3 run_tests.py`.
+
 ## 3. Semantic Rules
 
 Semantic analysis runs as a separate pass over the AST before LLVM code generation.
@@ -343,27 +491,30 @@ Invalid programs do not proceed to LLVM code generation.
 
 ## 6. Testing
 
-Run the Stage 1 regression tests:
+Run all regression tests:
 
-```bash
-python3 run_tests.py
-```
+    python3 run_tests.py
 
-The suite contains:
+The test suite includes Stage 1, Stage 2, and Stage 3 programs.
 
-- 18 valid programs with expected AST output.
-- 19 invalid programs with expected error messages.
+Current test results:
+
+- 33 valid programs.
+- 32 invalid programs.
+- 15 end-to-end execution tests.
+- 1 end-to-end test with input.
 
 A successful run ends with:
 
-```text
-37/37 tests passed
-```
+    65/65 tests passed
 
-Stage 2 semantic analysis and LLVM code generation have also been checked using compilation and execution tests.
+The Piping feature has three valid and three invalid tests.
+These tests check function chaining, arithmetic expressions,
+single-stage piping, type mismatches, unknown functions,
+and incorrect argument counts.
 
 ## 7. Grammar
 
 The complete EBNF grammar is available in [`grammar.ebnf`](grammar.ebnf).
 
-It covers Stage 1 and Stage 2 syntax, including functions, structures, member functions, expressions, field access, object creation, and input/output.
+It covers Stage 1, Stage 2, and Stage 3 syntax, including functions, structures, member functions, expressions, field access, object creation, input/output, and piping.

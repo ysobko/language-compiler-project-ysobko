@@ -25,7 +25,7 @@
      🟢, 🛣️, 🚦, 🚥
 
    - reserved symbol tokens:
-     <-, ->, ≡, ≠, +, -, *, {, }, (, ), ".", ","
+     <-, ->, |>, ≡, ≠, +, -, *, {, }, (, ), ".", ","
 
 *)
 
@@ -127,7 +127,9 @@ ifFunctionStatement ::= "check" comparison "🚥" "{"
 
 (* Expressions *)
 
-expression ::= additiveExpr
+expression ::= pipeExpr
+
+pipeExpr ::= additiveExpr { "|>" ident }
 
 additiveExpr ::= multiplicativeExpr
                  { ( "+" | "-" ) multiplicativeExpr }
@@ -317,5 +319,15 @@ letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G"
    for example: Point{x=10, y=20}.
 
    Every print call ends with exactly one newline.
+
+   Stage 3:
+
+   |>      - piping operator
+
+   Piping passes the result of the previous expression
+   as an argument to the next function.
+
+   Piping is evaluated from left to right.
+   It has lower precedence than arithmetic operators.
 
 *)

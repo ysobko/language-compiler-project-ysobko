@@ -1,0 +1,9 @@
+route double(🟢 x) -> 🟢 {
+arrive x * 2
+}
+
+route checkStatus(🚦 status) -> 🚦 {
+arrive status
+}
+
+print(10 |> double |> checkStatus)

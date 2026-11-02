@@ -36,6 +36,11 @@ class LLVMCodeGenerator:
     def __init__(self, symbols: SymbolTable):
         self.symbols = symbols
         self.module = ir.Module(name="traffica", context=ir.Context())
+        import subprocess
+        self.module.triple = subprocess.check_output(
+            ["llvm-config", "--host-target"],
+            text=True
+        ).strip()
 
         self.i32 = ir.IntType(32)
         self.i64 = ir.IntType(64)

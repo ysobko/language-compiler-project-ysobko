@@ -1,0 +1,10 @@
+route double(🟢 x) -> 🟢 {
+arrive x * 2
+}
+
+route addFive(🟢 x) -> 🟢 {
+arrive x + 5
+}
+
+go 🟢 result <- 10 |> double |> addFive
+print(result)

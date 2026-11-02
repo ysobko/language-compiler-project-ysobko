@@ -284,6 +284,26 @@ class Lexer:
                 )
                 continue
 
+            if (
+                byte == ord("|")
+                and self.peek(1) == ord(">")
+            ):
+                line = self.line
+                column = self.column
+
+                self.advance()
+                self.advance()
+
+                tokens.append(
+                    Token(
+                        TokenKind.PIPE,
+                        "|>",
+                        line,
+                        column
+                    )
+                )
+                continue
+
             arithmetic_tokens = {
                 ord("+"): TokenKind.PLUS,
                 ord("-"): TokenKind.MINUS,

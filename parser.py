@@ -55,7 +55,24 @@ class Parser:
         return token
 
     def parse_expression(self, allow_object_creation=True):
-        return self.parse_additive(allow_object_creation)
+        return self.parse_pipe(allow_object_creation)
+
+    def parse_pipe(self, allow_object_creation=True):
+        expression = self.parse_additive(allow_object_creation)
+
+        while self.peek().kind == TokenKind.PIPE:
+            self.eat(TokenKind.PIPE)
+            function_token = self.eat(TokenKind.IDENT)
+
+            expression = FunctionCallNode(
+                line=function_token.line,
+                column=function_token.column,
+                name=function_token.text,
+                arguments=[expression],
+                is_pipe_stage=True
+            )
+
+        return expression
 
     def parse_additive(self, allow_object_creation=True):
         left = self.parse_multiplicative(allow_object_creation)

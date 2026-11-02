@@ -21,6 +21,12 @@ def main():
         help="Source file (stdin if omitted)"
     )
 
+    argument_parser.add_argument(
+        "output_file",
+        nargs="?",
+        help="LLVM IR output file"
+    )
+
     modes = argument_parser.add_mutually_exclusive_group()
 
     modes.add_argument(
@@ -70,7 +76,14 @@ def main():
             print(llvm_ir)
             return
 
-        if args.output:
+        if args.output and args.output_file:
+            argument_parser.error(
+                "use either positional output file or -o, not both"
+            )
+
+        if args.output_file:
+            output_path = Path(args.output_file)
+        elif args.output:
             output_path = Path(args.output)
         elif args.input:
             output_path = Path(args.input).with_suffix(".ll")

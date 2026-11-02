@@ -1,0 +1,5 @@
+route add(🟢 a, 🟢 b) -> 🟢 {
+arrive a + b
+}
+
+print(10 |> add)

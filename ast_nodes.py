@@ -62,6 +62,7 @@ class BinaryOpNode(ExprNode):
 class FunctionCallNode(ExprNode):
     name: str
     arguments: list[ExprNode]
+    is_pipe_stage: bool = False
 
 
 @dataclass

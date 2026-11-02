@@ -29,6 +29,7 @@ class TokenKind(Enum):
     # Operators
     ASSIGN = "ASSIGN"
     ARROW = "ARROW"
+    PIPE = "PIPE"
     EQUAL = "EQUAL"
     NOT_EQUAL = "NOT_EQUAL"
 

@@ -1092,6 +1092,14 @@ class SemanticAnalyzer:
             )
 
         if len(node.arguments) != len(function.parameter_types):
+            if node.is_pipe_stage:
+                self.error(
+                    node,
+                    f"Piping stage '{node.name}' expects "
+                    f"{len(function.parameter_types)} argument(s), "
+                    f"got {len(node.arguments)}"
+                )
+
             self.error(
                 node,
                 f"function '{node.name}' expects "
@@ -1107,6 +1115,13 @@ class SemanticAnalyzer:
 
             if isinstance(argument, IntegerNode):
                 if parameter_type not in (I32, I64):
+                    if node.is_pipe_stage:
+                        self.error(
+                            node,
+                            f"Piping stage '{node.name}' expects "
+                            f"{parameter_type}, got an integer"
+                        )
+
                     self.error(
                         argument,
                         f"argument {index} of function '{node.name}' "
@@ -1119,6 +1134,13 @@ class SemanticAnalyzer:
                 )
 
             elif argument_type != parameter_type:
+                if node.is_pipe_stage:
+                    self.error(
+                        node,
+                        f"Piping stage '{node.name}' expects "
+                        f"{parameter_type}, got {argument_type}"
+                    )
+
                 self.error(
                     argument,
                     f"argument {index} of function '{node.name}' "

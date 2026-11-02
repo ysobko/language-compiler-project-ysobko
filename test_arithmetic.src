@@ -1,0 +1,4 @@
+go 🟢 x <- 10 + 5 * 2
+go 🟢 y <- (10 + 5) * 2
+print(x)
+print(y)
