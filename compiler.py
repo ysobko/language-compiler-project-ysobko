@@ -1,44 +1,96 @@
+import argparse
 import sys
+from pathlib import Path
 
 from errors import CompilationError
 from lexer import Lexer
 from parser import Parser
 from ast_dump import dump_ast
+from semantic import SemanticAnalyzer
+from codegen import LLVMCodeGenerator
 
 
 def main():
-    ast_mode = False
-    input_path = None
+    argument_parser = argparse.ArgumentParser(
+        description="Traffica compiler"
+    )
 
-    for argument in sys.argv[1:]:
-        if argument == "--ast":
-            ast_mode = True
-        else:
-            input_path = argument
+    argument_parser.add_argument(
+        "input",
+        nargs="?",
+        help="Source file (stdin if omitted)"
+    )
 
-    if input_path is not None:
+    modes = argument_parser.add_mutually_exclusive_group()
+
+    modes.add_argument(
+        "--ast",
+        action="store_true"
+    )
+
+    modes.add_argument(
+        "--ir",
+        action="store_true"
+    )
+
+    argument_parser.add_argument(
+        "-o",
+        "--output",
+        help="LLVM IR output file"
+    )
+
+    args = argument_parser.parse_args()
+
+    if args.input:
         try:
-            with open(input_path, "rb") as source_file:
-                source = source_file.read()
+            source = Path(args.input).read_bytes()
         except OSError as error:
-            print(f"compilation error: {error}", file=sys.stderr)
+            print(
+                f"compilation error: {error}",
+                file=sys.stderr
+            )
             sys.exit(1)
     else:
         source = sys.stdin.buffer.read()
 
     try:
-        lexer = Lexer(source)
-        tokens = lexer.tokenize()
+        tokens = Lexer(source).tokenize()
+        ast = Parser(tokens).parse_program()
 
-        parser = Parser(tokens)
-        ast = parser.parse_program()
-
-        if ast_mode:
+        if args.ast:
             print(dump_ast(ast))
+            return
+
+        symbols = SemanticAnalyzer().analyze(ast)
+
+        generator = LLVMCodeGenerator(symbols)
+        llvm_ir = generator.ir_text(ast)
+
+        if args.ir:
+            print(llvm_ir)
+            return
+
+        if args.output:
+            output_path = Path(args.output)
+        elif args.input:
+            output_path = Path(args.input).with_suffix(".ll")
+        else:
+            output_path = Path("output.ll")
+
+        output_path.write_text(llvm_ir)
+
+        print(f"LLVM IR written to {output_path}")
 
     except CompilationError as error:
         print(
             f"compilation error: line {error.line}:{error.column}: {error.message}",
+            file=sys.stderr
+        )
+        sys.exit(1)
+
+    except (OSError, ValueError, KeyError, NotImplementedError) as error:
+        print(
+            f"compilation error: {error}",
             file=sys.stderr
         )
         sys.exit(1)

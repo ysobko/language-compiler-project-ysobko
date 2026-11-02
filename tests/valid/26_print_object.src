@@ -1,0 +1,7 @@
+map Point {
+go 🟢 x
+hold 🛣️ y
+go 🚦 visible
+}
+go Point p <- Point{10, 8000000000, green}
+print(p)

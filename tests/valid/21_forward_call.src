@@ -1,0 +1,4 @@
+print(identity(15))
+route identity(🟢 x) -> 🟢 {
+arrive x
+}

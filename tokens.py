@@ -10,6 +10,14 @@ class TokenKind(Enum):
     CHECK = "CHECK"
     DETOUR = "DETOUR"
 
+    # Stage 2 keywords
+    ROUTE = "ROUTE"
+    ARRIVE = "ARRIVE"
+    MAP = "MAP"
+    SCAN = "SCAN"
+    PRINT = "PRINT"
+
+    # Types
     TYPE_I32 = "TYPE_I32"
     TYPE_I64 = "TYPE_I64"
     TYPE_BOOL = "TYPE_BOOL"
@@ -18,16 +26,27 @@ class TokenKind(Enum):
     GREEN = "GREEN"
     RED = "RED"
 
+    # Operators
     ASSIGN = "ASSIGN"
+    ARROW = "ARROW"
     EQUAL = "EQUAL"
     NOT_EQUAL = "NOT_EQUAL"
+
+    PLUS = "PLUS"
+    MINUS = "MINUS"
+    STAR = "STAR"
 
     CONDITION_MARKER = "CONDITION_MARKER"
 
     LBRACE = "LBRACE"
     RBRACE = "RBRACE"
+    LPAREN = "LPAREN"
+    RPAREN = "RPAREN"
+    COMMA = "COMMA"
+    DOT = "DOT"
 
     INTEGER = "INTEGER"
+    STRING = "STRING"
     IDENT = "IDENT"
 
     NEWLINE = "NEWLINE"

@@ -2,8 +2,22 @@ from ast_nodes import (
     ProgramNode,
     IntegerNode,
     BooleanNode,
+    StringNode,
     IdentifierNode,
     ComparisonNode,
+    BinaryOpNode,
+    FunctionCallNode,
+    ObjectCreationNode,
+    FieldAccessNode,
+    MemberCallNode,
+    ExpressionStmtNode,
+    ScanNode,
+    PrintNode,
+    ParameterNode,
+    FunctionDeclNode,
+    ReturnNode,
+    FieldDeclNode,
+    StructDeclNode,
     MutableDeclNode,
     ImmutableDeclNode,
     ConstantDeclNode,
@@ -21,6 +35,70 @@ def dump_ast(node, indent=0):
         for statement in node.statements:
             lines.append(dump_ast(statement, indent + 1))
 
+        return "\n".join(lines)
+
+    if isinstance(node, StructDeclNode):
+        lines = [f"{prefix}StructDecl {node.name}"]
+
+        lines.append(f"{prefix}  Fields")
+
+        for field in node.fields:
+            lines.append(dump_ast(field, indent + 2))
+
+        if node.member_functions:
+            lines.append(f"{prefix}  MemberFunctions")
+
+            for function in node.member_functions:
+                lines.append(dump_ast(function, indent + 2))
+
+        return "\n".join(lines)
+
+    if isinstance(node, FieldDeclNode):
+        mutability = "mutable" if node.mutable else "immutable"
+
+        return (
+            f"{prefix}Field {mutability} "
+            f"{node.type_name}  {node.name}"
+        )
+
+    if isinstance(node, FunctionDeclNode):
+        lines = [
+            f"{prefix}FunctionDecl {node.name} -> {node.result_type}",
+            f"{prefix}  Parameters",
+        ]
+
+        for parameter in node.parameters:
+            lines.append(dump_ast(parameter, indent + 2))
+
+        lines.append(f"{prefix}  Body")
+
+        for statement in node.body:
+            lines.append(dump_ast(statement, indent + 2))
+
+        return "\n".join(lines)
+
+    if isinstance(node, ParameterNode):
+        return f"{prefix}Parameter {node.type_name} {node.name}"
+
+    if isinstance(node, ReturnNode):
+        lines = [
+            f"{prefix}Return",
+            dump_ast(node.value, indent + 1),
+        ]
+        return "\n".join(lines)
+
+    if isinstance(node, PrintNode):
+        lines = [
+            f"{prefix}Print",
+            dump_ast(node.value, indent + 1),
+        ]
+        return "\n".join(lines)
+
+    if isinstance(node, ExpressionStmtNode):
+        lines = [
+            f"{prefix}ExpressionStmt",
+            dump_ast(node.expression, indent + 1),
+        ]
         return "\n".join(lines)
 
     if isinstance(node, MutableDeclNode):
@@ -45,8 +123,16 @@ def dump_ast(node, indent=0):
         return "\n".join(lines)
 
     if isinstance(node, AssignmentNode):
+        if isinstance(node.target, IdentifierNode):
+            lines = [
+                f"{prefix}Assignment {node.target.name}",
+                dump_ast(node.value, indent + 1),
+            ]
+            return "\n".join(lines)
+
         lines = [
-            f"{prefix}Assignment {node.name}",
+            f"{prefix}Assignment",
+            dump_ast(node.target, indent + 1),
             dump_ast(node.value, indent + 1),
         ]
         return "\n".join(lines)
@@ -60,6 +146,54 @@ def dump_ast(node, indent=0):
 
     if isinstance(node, IdentifierNode):
         return f"{prefix}Identifier {node.name}"
+
+    if isinstance(node, StringNode):
+        return f'{prefix}String "{node.value}"'
+
+    if isinstance(node, ScanNode):
+        return f"{prefix}Scan"
+
+    if isinstance(node, FunctionCallNode):
+        lines = [f"{prefix}FunctionCall {node.name}"]
+
+        for argument in node.arguments:
+            lines.append(dump_ast(argument, indent + 1))
+
+        return "\n".join(lines)
+
+    if isinstance(node, ObjectCreationNode):
+        lines = [f"{prefix}ObjectCreation {node.type_name}"]
+
+        for value in node.values:
+            lines.append(dump_ast(value, indent + 1))
+
+        return "\n".join(lines)
+
+    if isinstance(node, FieldAccessNode):
+        lines = [
+            f"{prefix}FieldAccess {node.field_name}",
+            dump_ast(node.object, indent + 1),
+        ]
+        return "\n".join(lines)
+
+    if isinstance(node, MemberCallNode):
+        lines = [
+            f"{prefix}MemberCall {node.member_name} [chain_end=true]",
+            dump_ast(node.object, indent + 1),
+        ]
+
+        for argument in node.arguments:
+            lines.append(dump_ast(argument, indent + 1))
+
+        return "\n".join(lines)
+
+    if isinstance(node, BinaryOpNode):
+        lines = [
+            f"{prefix}BinaryOp {node.operator}",
+            dump_ast(node.left, indent + 1),
+            dump_ast(node.right, indent + 1),
+        ]
+        return "\n".join(lines)
 
     if isinstance(node, ComparisonNode):
         lines = [

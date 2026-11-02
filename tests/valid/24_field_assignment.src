@@ -1,0 +1,6 @@
+map Point {
+go 🟢 x
+}
+go Point p <- Point{10}
+p.x <- 25
+print(p.x)

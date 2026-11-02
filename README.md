@@ -1,204 +1,369 @@
-Traffic Language Compiler
+# Traffica Compiler
 
-Traffic Language is small traffic-themed programming language.
+Traffica is a small traffic-themed programming language with custom keywords and emoji-based types. Its compiler is written in Python and generates LLVM IR using `llvmlite`.
 
-It uses traffic-related keywords and emoji symbols for types and control flow. Stage 1 compiler contains hand-written byte lexer and recursive-descent parser that builds AST.
+- **Stage 1:** Variables, constants, assignments, comparisons, and conditional statements.
+- **Stage 2:** Functions, structures, member functions, arithmetic, input/output, semantic analysis, and LLVM code generation.
 
-Full  grammar is available in grammar.ebnf.
+The complete language grammar is defined in [`grammar.ebnf`](grammar.ebnf).
 
-Language Features:
+## 1. Getting Started
 
-Types
+### Requirements
 
-Traffic Language has 2 signed int types and 1 boolean type:
+- Python 3
+- `llvmlite`
+- Clang
 
-* 🟢 — signed 32-bit integer (i32)
-* 🛣️ — signed 64-bit integer (i64)
-* 🚦 — boolean
+Install the Python dependency:
 
-Example:
+```bash
+python3 -m pip install llvmlite
+```
 
+### Running the Compiler
+
+Generate LLVM IR from a source file:
+
+```bash
+python3 compiler.py program.src
+```
+
+This creates `program.ll`.
+
+Compile and run the generated program:
+
+```bash
+clang program.ll -o program
+./program
+```
+
+Other compiler options:
+
+```bash
+python3 compiler.py --ast program.src
+python3 compiler.py --ir program.src
+python3 compiler.py program.src -o output.ll
+python3 compiler.py --help
+```
+
+The compiler can also read source code from standard input.
+
+## 2. Language Features
+
+### Types
+
+Traffica supports three primitive types:
+
+| Type | Meaning | Range |
+|---|---|---|
+| 🟢 | Signed 32-bit integer (`i32`) | -2147483648 to 2147483647 |
+| 🛣️ | Signed 64-bit integer (`i64`) | -9223372036854775808 to 9223372036854775807 |
+| 🚦 | Boolean | `green` or `red` |
+
+`green` represents `true`, and `red` represents `false`.
+
+### Variables and Constants
+
+Traffica uses three declaration keywords:
+
+- `go` — mutable variable.
+- `hold` — immutable variable.
+- `sign` — named constant.
+
+```text
 go 🟢 speed <- 60
-go 🛣️ distance <- 5000000000
-go 🚦 road_open <- green
-
-Integer ranges are:
-
-🟢  -2147483648 .. 2147483647
-🛣️  -9223372036854775808 .. 9223372036854775807
-
-Integer overflow checking is semantic rule of language. Semantic checks aren't performed in Stage 1 lexer and parser.
-
-Mutable Variables
-
-The 'go' keyword declares mutable variable.
-
-go 🟢 speed <- 60
-speed <- 80
-
-Immutable Variables
-
-The 'hold' keyword declares immutable variable.
-
 hold 🟢 speed_limit <- 90
-
-Constants
-
-The 'sign' keyword declares named constant.
-
 sign 🚦 ROAD_OPEN <- green
 
-Assignment
-
-The <- operator assigns value to variable.
-
 speed <- 80
+```
 
-Values can be integer literals, boolean literals or identifiers.
+Assignments use the `<-` operator. Assigning to an immutable variable or constant is not allowed.
 
-speed <- speed_limit
-road_open <- green
+### Arithmetic and Comparisons
 
-Boolean Values
+Supported arithmetic operators are `+`, `-`, and `*`.
 
-Traffic Language uses traffic-themed boolean literals:
+Multiplication has higher precedence than addition and subtraction. Parentheses can change the evaluation order.
 
-* green — true
-* red — false
+```text
+go 🟢 x <- 10 + 5 * 2
+go 🟢 y <- (10 + 5) * 2
 
-Example:
+print(x)
+print(y)
+```
 
-go 🚦 warning <- red
-warning <- green
+Output:
 
-Comparisons
+```text
+20
+30
+```
 
-Language provides equality and inequality comparison operators:
+Arithmetic requires compatible integer types; booleans cannot be used as arithmetic operands.
 
-* ≡ — equality
-* ≠ — inequality
+Comparison operators:
 
-Examples:
+- `≡` — equality.
+- `≠` — inequality.
 
-speed ≡ speed_limit
-speed ≠ speed_limit
+### Conditional Statements
 
-Conditional Statements
+`check` is equivalent to `if`, and `detour` is an optional `else`. The `🚥` symbol separates the condition from its block.
 
-'check' is the equivalent of if.
+```text
+go 🟢 speed <- 60
+hold 🟢 limit <- 90
 
-The 🚥 symbol marks the end of condition.
-
-check speed ≠ speed_limit 🚥 {
-    speed <- speed_limit
-}
-
-'detour' is the equivalent of else and is optional.
-
-check speed ≠ speed_limit 🚥 {
-    speed <- speed_limit
+check speed ≠ limit 🚥 {
+    speed <- limit
 } detour {
     speed <- 0
 }
+```
 
-Both check and detour blocks must contain at least one statement.
+Both `check` and `detour` blocks must contain at least one statement. Nested conditionals are supported.
 
-Conditional statements can also be nested:
+### Functions
 
-check speed ≠ speed_limit 🚥 {
-    check road_open ≡ green 🚥 {
-        speed <- speed_limit
+Functions are declared using `route` and return values using `arrive`.
+
+```text
+route getSpeed(🟢 speed) -> 🟢 {
+    arrive speed
+}
+
+go 🟢 result <- getSpeed(60)
+```
+
+Function calls are expressions, so nested calls are supported:
+
+```text
+go 🟢 result <- getSpeed(getSpeed(60))
+```
+
+Functions may be recursive and may call functions declared later in the source file.
+
+### Structures
+
+Structures are declared using `map`. Fields have types and are declared with `go` or `hold`.
+
+```text
+map Point {
+    go 🟢 x
+    go 🟢 y
+}
+
+go Point p <- Point{10, 20}
+
+print(p.x)
+
+p.x <- 50
+```
+
+Object initialization provides field values in declaration order.
+
+Nested structures and chained field access are supported:
+
+```text
+c.center.x
+```
+
+### Member Functions
+
+Functions declared inside structures are member functions.
+
+```text
+map Counter {
+    go 🟢 value
+
+    route increment(🟢 amount) -> 🟢 {
+        value <- value + amount
+        arrive value
     }
 }
 
-Statements and Newlines
+go Counter counter <- Counter{10}
+print(counter.increment(5))
+```
 
-Line statements are terminated by newline. Blank lines are allowed and spaces and tabs between tokens are ignored.
+Output:
 
-For example, these are 2 separate statements:
+```text
+15
+```
 
-speed <- 80
-warning <- green
+Member functions can access the current object's fields and other member functions of the same structure.
 
-Compiler Structure
+### Input and Output
 
-The Stage 1 compiler consists of:
+`scan()` reads one integer from standard input and returns an `🟢` (`i32`) value.
 
-* lexer.py — hand-written byte lexer
-* tokens.py — token kinds and token representation
-* parser.py — recursive-descent parser
-* ast_nodes.py — AST node hierarchy
-* ast_dump.py — stable textual AST representation
-* errors.py — compilation error representation
-* compiler.py — compiler command-line entry point
-* grammar.ebnf — complete EBNF grammar
-* tests/ — valid and invalid test programs
-* run_tests.py — automated test runner
+```text
+go 🟢 speed <- scan()
+print(speed)
+```
 
-Requirements
+`print()` supports integers, booleans, strings, and structure objects.
 
-Python 3 is required.
+Booleans are printed as `true` or `false`. Every `print()` statement ends with a newline.
 
-No third-party Python packages are needed.
+Objects are printed using their type name and fields in declaration order:
 
-Running the Compiler
+```text
+Point{x=10, y=20}
+```
 
-The compiler can read source file directly.
+### Statements and Newlines
 
-To parse program and print its AST:
+Statements are separated by newlines. Blank lines are allowed, and spaces and tabs between tokens are ignored.
 
-python3 compiler.py --ast input.txt
+## 3. Semantic Rules
 
-For example:
+Semantic analysis runs as a separate pass over the AST before LLVM code generation.
 
-python3 compiler.py --ast tests/valid/01_all_declarations.src
+### Scope and Declarations
 
-The compiler also supports reading source code from standard input:
+- Variables must be declared before use.
+- A name cannot be declared twice in the same scope.
+- Functions can access their parameters, local variables, and global names.
+- Member functions resolve names in this order:
+  1. Parameters and local variables.
+  2. Fields of the current object.
+  3. Global names.
 
-python3 compiler.py --ast < tests/valid/01_all_declarations.src
+### Type Checking
 
-Without --ast, a valid program is parsed without printing the AST:
+- Assignments must respect declared types.
+- Function calls must provide the correct number and types of arguments.
+- The expression used with `arrive` must match the function's declared return type.
+- Object initialization must provide exactly one value per field, in declaration order, with matching types.
+- Field access must reference an existing field.
 
-python3 compiler.py tests/valid/01_all_declarations.src
+### Mutability
 
-Errors
+- `go` variables are mutable.
+- `hold` variables and `sign` constants cannot be reassigned.
+- Assignment through a field chain is allowed only when the object and every field in the chain are mutable.
+- A member function that assigns a field is considered mutating.
+- Mutating member functions cannot be called on immutable objects.
+- Non-mutating member functions can be called on mutable or immutable objects.
 
-Lexical and syntax errors are printed to standard error in the following format:
+### Integer Overflow
 
-compilation error: line L:C: message
+Traffica uses signed 32-bit and 64-bit integers.
 
-Compilation errors produce non-zero exit code and no normal program output.
+Integer literals and constant arithmetic expressions are checked during semantic analysis against the supported ranges.
+
+Arithmetic involving runtime values uses LLVM signed overflow checks. If an operation overflows, the generated program terminates using `abort()`.
+
+## 4. Compiler Architecture
+
+The compiler uses the following pipeline:
+
+```text
+Source Code
+    |
+    v
+Lexer
+    |
+    v
+Parser
+    |
+    v
+AST
+    |
+    v
+Semantic Analysis + Symbol Table
+    |
+    v
+LLVM IR Code Generation
+    |
+    v
+LLVM IR (.ll)
+    |
+    v
+Clang
+    |
+    v
+Executable
+```
+
+### Project Structure
+
+| File | Responsibility |
+|---|---|
+| `lexer.py` | Hand-written byte lexer |
+| `tokens.py` | Token definitions |
+| `parser.py` | Recursive-descent parser |
+| `ast_nodes.py` | AST node definitions |
+| `ast_dump.py` | Textual AST representation |
+| `symbols.py` | Symbol table |
+| `semantic.py` | Semantic analysis and type checking |
+| `codegen.py` | LLVM IR generation |
+| `compiler.py` | Compiler CLI |
+| `errors.py` | Compilation errors |
+| `grammar.ebnf` | Language grammar |
+| `run_tests.py` | Stage 1 test runner |
+| `tests/` | Valid and invalid Stage 1 programs |
+
+### LLVM Code Generation
+
+LLVM IR is generated using the `llvmlite.ir` builder API.
+
+- Variables and arithmetic use the appropriate integer widths.
+- Conditionals use basic blocks and conditional branches.
+- Functions are declared before their bodies are generated, allowing forward calls.
+- User-defined functions receive prefixes to avoid runtime naming conflicts.
+- Structures use LLVM identified types.
+- Field access uses `getelementptr` with field indices from the symbol table.
+- Member functions receive the object's pointer as their first argument.
+- Input and output use external `scanf` and `printf` declarations.
+- Format strings are stored as global constants.
+- `i32` values use `%d`, while `i64` values use `%lld`.
+- Object printing iterates through the structure's fields.
+
+The compiler writes LLVM IR using the module generated by the builder.
+
+## 5. Error Handling
+
+Lexical, syntax, and semantic errors stop compilation and produce a non-zero exit code.
+
+Errors are reported to standard error.
 
 Example:
 
+```text
 compilation error: line 4:13: expected comparison operator
+```
 
-Running the Tests
+Invalid programs do not proceed to LLVM code generation.
 
-Run the complete test suite with:
+## 6. Testing
 
+Run the Stage 1 regression tests:
+
+```bash
 python3 run_tests.py
+```
 
-The test runner executes all valid and invalid test cases.
+The suite contains:
 
-Valid programs are parsed with --ast and their output is compared with the corresponding .ast files.
-
-Invalid programs must produce non-zero exit code and their error output is compared with the corresponding .err files.
-
-The current test suite contains:
-
-* 18 valid programs with expected AST dumps
-* 19 invalid programs with expected lexical or syntax errors
-* 37 test cases in total
+- 18 valid programs with expected AST output.
+- 19 invalid programs with expected error messages.
 
 A successful run ends with:
 
+```text
 37/37 tests passed
+```
 
-Grammar
+Stage 2 semantic analysis and LLVM code generation have also been checked using compilation and execution tests.
 
-The complete EBNF definition of Traffic Language is stored in:
+## 7. Grammar
 
-grammar.ebnf
+The complete EBNF grammar is available in [`grammar.ebnf`](grammar.ebnf).
 
-It defines syntax accepted by Stage 1 parser, including declarations, assignments, comparisons, conditional statements, blocks, identifiers, integer literals, and boolean literals.
+It covers Stage 1 and Stage 2 syntax, including functions, structures, member functions, expressions, field access, object creation, and input/output.

@@ -14,75 +14,218 @@
 
    - integer literals may be negative
 
-   - reserved words:      go, hold, sign, check, detour, green, red
+   - string literals are enclosed in double quotes
+     and cannot contain a newline or a double quote
 
-   - reserved emoji tokens:     🟢, 🛣️, 🚦, 🚥
+   - reserved words:
+     go, hold, sign, check, detour, green, red,
+     map, route, arrive, scan, print
+
+   - reserved emoji tokens:
+     🟢, 🛣️, 🚦, 🚥
+
+   - reserved symbol tokens:
+     <-, ->, ≡, ≠, +, -, *, {, }, (, ), ".", ","
 
 *)
 
-program ::= { newline | statement }
 
-statement ::= lineStatement newline | ifStatement
+program ::= { newline | topLevelStatement }
 
-lineStatement ::= decl | assign
+
+topLevelStatement ::= lineStatement newline
+                    | ifStatement
+                    | functionDecl
+                    | structDecl
+
+
+(* Variable declarations and assignments *)
+
+lineStatement ::= decl
+                | assign
+                | callStatement
+                | printStatement
+
+callStatement ::= functionCall | memberCall
 
 decl ::= mutableDecl | immutableDecl | constantDecl
 
-mutableDecl ::= "go" type ident "<-" value
+mutableDecl ::= "go" type ident "<-" expression
 
-immutableDecl ::= "hold" type ident "<-" value
+immutableDecl ::= "hold" type ident "<-" expression
 
-constantDecl ::= "sign" type ident "<-" value
+constantDecl ::= "sign" type ident "<-" expression
 
-assign ::= ident "<-" value
+assign ::= assignTarget "<-" expression
 
-ifStatement ::= "check" comparison "🚥" "{" newline block "}" [ "detour" "{" newline block "}" ] newline
+assignTarget ::= ident | fieldChain
+
+
+(* Functions *)
+
+functionDecl ::= "route" ident "(" [ parameterList ] ")" "->" type
+                 "{" newline functionBlock "}" newline
+
+parameterList ::= parameter { "," parameter }
+
+parameter ::= type ident
+
+functionBlock ::= { newline } functionStatement
+                  { newline | functionStatement }
+
+functionStatement ::= lineStatement newline
+                    | ifFunctionStatement
+                    | returnStatement newline
+
+returnStatement ::= "arrive" expression
+
+
+(* Structures *)
+
+structDecl ::= "map" ident "{"
+               newline structBody "}" newline
+
+structBody ::= { newline } structMember
+               { newline | structMember }
+
+structMember ::= fieldDecl newline
+               | memberFunctionDecl
+
+fieldDecl ::= mutableField | immutableField
+
+mutableField ::= "go" type ident
+
+immutableField ::= "hold" type ident
+
+
+(* Member functions *)
+
+memberFunctionDecl ::= "route" ident "(" [ parameterList ] ")" "->" type
+                       "{" newline functionBlock "}" newline
+
+
+(* If / else *)
+
+ifStatement ::= "check" comparison "🚥" "{"
+                newline block "}"
+                [ "detour" "{" newline block "}" ]
+                newline
 
 block ::= { newline } statement { newline | statement }
 
-comparison ::= value compOp value
+statement ::= lineStatement newline
+            | ifStatement
+
+
+(* If / else inside a function *)
+
+ifFunctionStatement ::= "check" comparison "🚥" "{"
+                        newline functionBlock "}"
+                        [ "detour" "{" newline functionBlock "}" ]
+                        newline
+
+
+(* Expressions *)
+
+expression ::= additiveExpr
+
+additiveExpr ::= multiplicativeExpr
+                 { ( "+" | "-" ) multiplicativeExpr }
+
+multiplicativeExpr ::= primaryExpr
+                       { "*" primaryExpr }
+
+primaryExpr ::= value
+              | functionCall
+              | objectCreation
+              | chain
+              | scanExpr
+              | "(" expression ")"
+
+functionCall ::= ident "(" [ argumentList ] ")"
+
+argumentList ::= expression { "," expression }
+
+objectCreation ::= ident "{" [ argumentList ] "}"
+
+chain ::= ident "." ident { "." ident }
+          [ "(" [ argumentList ] ")" ]
+
+memberCall ::= ident "." ident { "." ident }
+               "(" [ argumentList ] ")"
+
+fieldChain ::= ident "." ident { "." ident }
+
+scanExpr ::= "scan" "(" ")"
+
+
+(* Print *)
+
+printStatement ::= "print" "(" printArgument ")"
+
+printArgument ::= expression | stringLiteral
+
+
+(* Comparisons *)
+
+comparison ::= expression compOp expression
 
 compOp ::= "≡" | "≠"
 
-type ::= "🟢" | "🛣️" | "🚦"
+
+(* Types and values *)
+
+type ::= primitiveType | ident
+
+primitiveType ::= "🟢" | "🛣️" | "🚦"
 
 value ::= integer | boolean | ident
 
 boolean ::= "green" | "red"
 
+
+(* Literals *)
+
+stringLiteral ::= '"' { stringChar } '"'
+
+stringChar ::= ? any character except '"' and newline ?
+
 integer ::= [ "-" ] digit { digit }
+
+
+(* Identifiers *)
 
 ident ::= ( letter | "_" ) { letter | digit | "_" }
 
 newline ::= "\n"
 
-digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+digit ::= "0" | "1" | "2" | "3" | "4"
+        | "5" | "6" | "7" | "8" | "9"
 
 letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G"
-
          | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-
          | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-
          | "V" | "W" | "X" | "Y" | "Z"
-
          | "a" | "b" | "c" | "d" | "e" | "f" | "g"
-
          | "h" | "i" | "j" | "k" | "l" | "m" | "n"
-
          | "o" | "p" | "q" | "r" | "s" | "t" | "u"
-
          | "v" | "w" | "x" | "y" | "z"
 
 
 (* Language rules:
 
+   Stage 1:
+
    go      - mutable variable
    hold    - immutable variable
    sign    - named constant
 
-   🟢      - signed 32-bit integer (-2147483648 .. 2147483647)
-   🛣️      - signed 64-bit integer (-9223372036854775808 .. 9223372036854775807)
+   🟢      - signed 32-bit integer
+             (-2147483648 .. 2147483647)
+
+   🛣️      - signed 64-bit integer
+             (-9223372036854775808 .. 9223372036854775807)
+
    🚦      - boolean type
 
    green   - true
@@ -99,8 +242,80 @@ letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G"
    Detour block, when present, must contain at least one statement.
    Detour clause is optional.
 
+   Arithmetic operators:
+
+   +       - addition
+   -       - subtraction
+   *       - multiplication
+
+   Multiplication has higher precedence than addition
+   and subtraction.
+
+   Parentheses can override operator precedence.
+
+   Arithmetic is defined for integer types only.
+
    Integer values are overflow-checked.
    Value assigned to an integer variable must fit the range
    of its declared type.
-   Overflow checking is semantic rule of the language.
+   Overflow checking is a semantic rule of the language.
+
+
+   Stage 2:
+
+   route   - function or member function declaration
+   arrive  - leaves a function with a value
+   map     - structure declaration
+   scan    - reads one 🟢 integer from standard input
+   print   - prints a value followed by one newline
+
+   A route has typed parameters and a result type.
+
+   Function calls are expressions.
+   Function arguments are expressions.
+   A function call may be used as an argument of another call.
+
+   A function may call itself and functions declared below it.
+
+   A map defines a named structure type.
+
+   Each field has a type and is either mutable (go)
+   or immutable (hold).
+
+   An object is created with one value for every field,
+   in the same order in which the fields are declared.
+
+   Fields are accessed by name using ".".
+   Field access may form a chain, for example c.center.x.
+
+   Assignment through a field chain is allowed only when
+   the object and every field in the chain are mutable.
+
+   A route declared inside a map is a member function.
+
+   Inside a member function, parameters and local variables
+   are looked up first, then fields of the current object,
+   then global names.
+
+   Fields of the current object and other member functions
+   are visible by name inside a member function.
+
+   A member function is called on an object using ".".
+
+   A member function that assigns a field is mutating and
+   may be called only on a mutable object.
+
+   scan() reads one integer from standard input
+   and produces a value of type 🟢.
+
+   print can print an integer, boolean, string literal,
+   or structure object.
+
+   Boolean values are printed as true or false.
+
+   An object is printed as its type followed by its fields,
+   for example: Point{x=10, y=20}.
+
+   Every print call ends with exactly one newline.
+
 *)

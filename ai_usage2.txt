@@ -1,0 +1,78 @@
+AI Usage Disclosure — Stage 2
+
+1. AI Tools Used
+
+I used ChatGPT by OpenAI to help me with Stage 2 of my Traffica compiler project.
+
+ChatGPT helped me understand the assignment requirements, write and improve some parts of the code, find problems, and create tests.
+
+Full chat transcript:
+https://chatgpt.com/share/6ad6230c-ea6c-83ed-84de-90da29c58729
+
+2. Task 1–2: Language Features and Parser
+
+I used ChatGPT to help me understand how to extend my language with new features, including arithmetic expressions, functions, structures, and member functions.
+
+What I used:
+I used AI suggestions for changes to the lexer, parser, AST nodes, and grammar. ChatGPT also helped me understand how different expressions should be represented in the AST.
+
+What I changed and why:
+We made changes to the grammar and parser to support the syntax of my traffic-themed language. I also checked that the new features did not break the existing Stage 1 programs.
+
+What I understood:
+The lexer splits the source code into tokens. The parser uses these tokens to build an AST. The AST represents the structure of the program and is later used for semantic analysis and code generation.
+
+3. Task 3: Semantic Analysis
+
+I used ChatGPT to help implement semantic analysis and the symbol table.
+
+What I used:
+I used AI-generated code and suggestions for semantic.py and symbols.py. This included checking variable declarations, types, function arguments, return values, structure fields, and mutability.
+
+What I changed and why:
+We checked the semantic rules using valid and invalid examples and worked on problems found during testing. The goal was to make sure incorrect programs were rejected before generating LLVM code.
+
+What I understood:
+Semantic analysis checks whether a program makes sense, not just whether its syntax is correct. The symbol table stores information about variables, functions, and structures. For example, it helps check whether a variable exists, whether a function receives the correct arguments, and whether a constant can be changed.
+
+4. Task 3: LLVM Code Generation
+
+I used ChatGPT to help implement LLVM IR generation with the llvmlite library.
+
+What I used:
+I used AI-generated code and suggestions for codegen.py and changes to compiler.py. This included generating LLVM instructions for variables, arithmetic, conditions, functions, structures, member functions, and input/output.
+
+What I changed and why:
+During testing, we found and fixed problems related to accessing structure fields and generating LLVM types. We also updated compiler.py to support command-line options for displaying the AST, generating LLVM IR, and choosing an output file.
+
+What I understood:
+Code generation takes the AST and converts it into LLVM IR. LLVM IR is an intermediate representation that can be compiled into an executable program. The llvmlite library helps create LLVM instructions, while clang can turn the generated .ll file into a program that runs.
+
+5. Task 4: Testing
+
+I used ChatGPT to help extend the test script and create additional tests.
+
+What I used:
+I used AI-generated suggestions for updating run_tests.py and creating valid and invalid test programs. ChatGPT also helped prepare expected output and error files.
+
+What I changed and why:
+We extended the existing test script so it could compile and run programs, not only compare ASTs. We added support for .expected files and .in files for programs that read input. We also added tests for semantic errors, such as incorrect function arguments, wrong return types, unknown fields, and modifying immutable values.
+
+What I understood:
+The valid tests check that correct programs work. End-to-end tests compile the program, run it, and compare the output with the expected result. Invalid tests check that the compiler rejects incorrect programs and prints the correct error message.
+
+6. Final Verification
+
+I ran the test script and checked the results.
+
+Final results:
+
+* 30 valid programs
+* 29 invalid programs
+* 12 end-to-end tests
+* 1 end-to-end test with input
+* 59 out of 59 tests passed
+
+The original Stage 1 tests also continued to pass.
+
+AI helped me with implementation and testing, but I used the compiler and test results to check whether the suggested code worked.
