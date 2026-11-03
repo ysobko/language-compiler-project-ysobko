@@ -1,0 +1,201 @@
+AI USAGE DISCLOSURE — STAGE 3
+
+1. AI Tools Used
+
+I used ChatGPT (OpenAI) during Stage 3 of my compiler project.
+
+I used it to understand the assignment requirements, discuss implementation ideas, get help with writing and modifying code, debug problems, create and check tests, and improve the README documentation.
+
+I also used ChatGPT to understand why some parts of my implementation did not work correctly and how to fix them.
+
+2. Prompts and Chat History
+
+AI tool: ChatGPT (OpenAI)
+
+Full chat transcript:
+
+https://chatgpt.com/share/6aea0364-8bcc-83eb-8caf-56673faf3cf3
+
+I used ChatGPT throughout the development process. My questions included how to implement the piping operator, how to organize the AST optimizer, how to handle variable scopes and function inlining, how to fix compilation errors, and how to check that my implementation meets the assignment requirements.
+
+I also shared code, terminal outputs, errors, and test results with ChatGPT to discuss specific problems.
+
+3. Task 1 — Piping Operator
+
+What I used AI for:
+
+I used ChatGPT to help me understand how to add the piping operator (|>) to my language.
+
+We discussed how the operator should work, how to represent it in the AST, how to parse expressions containing pipes, and how to check that the functions in a pipeline have compatible types.
+
+ChatGPT also helped me check the implementation, prepare test cases, and document the feature in the README.
+
+What I took from AI:
+
+I used AI suggestions and code assistance while implementing the piping feature, including its integration with the parser, semantic analysis, and LLVM code generation.
+
+I also used AI assistance when preparing valid and invalid test cases and explaining the feature in the documentation.
+
+What I changed and why:
+
+I checked the suggested implementation against the syntax and behavior of my language and adjusted the code during development.
+
+I tested different cases, including function chains, arithmetic expressions, incorrect argument types, and unknown functions.
+
+I used the test results to check whether the feature worked correctly and whether errors were reported.
+
+What I understood:
+
+The piping operator passes the result of one expression to the next function.
+
+For example, speed |> addFive |> double first calls addFive(speed) and then passes that result to double().
+
+I understood that the compiler needs to parse the pipeline, check the types of each function call, and generate the correct LLVM IR.
+
+4. Task 2 — AST Optimizations
+
+What I used AI for:
+
+I used ChatGPT extensively while working on the optimizer.
+
+It helped me understand and implement the three required optimizations: unused variable removal, unused function removal, and function inlining.
+
+We also discussed how to handle scopes, variable shadowing, recursive functions, side effects, and evaluation order.
+
+ChatGPT helped me debug the optimizer and check its behavior using different test programs.
+
+What I took from AI:
+
+I used AI assistance to develop and modify the optimizer implementation in optimizer.py.
+
+This included suggestions for finding unused variables and functions, replacing function calls with inlined code, renaming variables, and preserving expressions with side effects.
+
+I also used AI-generated or AI-assisted terminal commands and test examples to check the optimizer.
+
+What I changed and why:
+
+During testing, I found several cases that needed additional attention.
+
+I worked on preserving variable scopes so that removing an unused variable would not accidentally affect another variable with the same name.
+
+I also checked that recursive functions were not inlined and that variables introduced during inlining received unique names.
+
+Another important problem was evaluation order. For example, an expression containing two scan() calls must read the values in the same order before and after optimization.
+
+The implementation was adjusted so that inlining is skipped when it could change the order of side effects.
+
+I also checked that removing an unused variable does not remove a function call or scan() expression that still needs to execute.
+
+What I understood:
+
+Unused variable removal deletes declarations and assignments whose values are never used, but it must preserve expressions that have side effects.
+
+Unused function removal deletes functions that are not called. This process may need to repeat because removing one function can make another function unused.
+
+Function inlining replaces a function call with the function’s body. Parameters become local variables initialized with the arguments, and variable names must be changed when necessary to avoid conflicts.
+
+I also understood that optimization must not change the program’s behavior. This is why recursion, side effects, variable scopes, and evaluation order are important.
+
+5. Task 3 — Interactive Program
+
+What I used AI for:
+
+I used ChatGPT to review my interactive program and check whether it met all Task 3 requirements.
+
+We checked the use of a structure, a member function, regular functions, input, output, calculations, and the piping operator.
+
+ChatGPT also helped me verify the recorded sessions and the commands for compiling the program into a native executable.
+
+What I took from AI:
+
+I used AI assistance to review the program logic, calculate the expected results for the recorded sessions, and check the README instructions.
+
+What I changed and why:
+
+I checked the program with three different inputs: 25, 30, and 20.
+
+These inputs test situations where the adjusted speed is equal to, greater than, or less than the stored speed limit.
+
+I also verified that the program could be compiled and executed as a native binary using llc and clang.
+
+What I understood:
+
+My program asks the user to enter a car’s speed.
+
+It uses the piping operator to pass the speed through two functions. The first adds 5, and the second doubles the result.
+
+The SpeedChecker structure stores the speed limit, and its member function checks whether the adjusted speed is different from that limit.
+
+I also understood that the compiler generates LLVM IR, llc converts it into an object file, and clang links it into a native executable.
+
+6. Testing and Debugging
+
+What I used AI for:
+
+I used ChatGPT to help create test cases, understand errors, run additional checks, and compare optimized and unoptimized program behavior.
+
+We tested the piping feature, the three optimizer transformations, and the interactive program.
+
+We also checked more difficult optimizer cases, including variable shadowing, recursive functions, multiple parameters, name collisions, and side effects.
+
+What I took from AI:
+
+I used AI-assisted test commands, debugging suggestions, and examples of programs that could reveal problems in the optimizer.
+
+I also used ChatGPT to review test results and identify what needed further checking.
+
+What I changed and why:
+
+One test, 09_identifier_shapes, contained an assignment that was not semantically valid. I corrected it so the test could also pass semantic analysis when optimization was enabled.
+
+I also checked the optimizer against the existing compiler tests to make sure that enabling optimization did not introduce new errors.
+
+What I understood:
+
+Testing only the main examples is not enough because some problems appear in more complicated cases.
+
+I understood that an optimizer must preserve the same observable behavior as the original program.
+
+Comparing the outputs of optimized and unoptimized programs helps check this.
+
+7. README and Documentation
+
+What I used AI for:
+
+I used ChatGPT to help organize and improve the Stage 3 README documentation.
+
+This included descriptions of the piping operator, optimizer transformations, supported and unsupported inlining cases, LLVM IR examples, and the interactive program.
+
+What I took from AI:
+
+I used AI assistance to write and revise explanations, testing instructions, and examples.
+
+What I changed and why:
+
+I checked that the README matched my actual implementation and test results.
+
+I also updated the regression testing section to include the results of running the test suite with optimization enabled.
+
+I verified that the LLVM IR examples existed and matched the behavior described in the documentation.
+
+What I understood:
+
+Documentation should describe what the compiler actually supports, including its limitations.
+
+For example, it is important to explain why some function calls are not inlined rather than claiming that every function can be inlined.
+
+8. Final Verification
+
+I reviewed the implementation with the help of ChatGPT and ran tests to check the results.
+
+The final checks included:
+
+* 69/69 standard compiler tests passed.
+* 69/69 regression tests passed with optimization enabled.
+* 6/6 optimizer-specific tests passed.
+* The interactive program was successfully compiled into a native executable using llc and clang.
+* The recorded sessions produced the expected results.
+
+I understand the main ideas behind the implemented features, including how piping works, why the optimizer needs to preserve program behavior, and how the compiler generates a native executable.
+
+I used AI as a coding, debugging, and learning assistant throughout Stage 3.
