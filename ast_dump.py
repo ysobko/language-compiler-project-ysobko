@@ -23,11 +23,20 @@ from ast_nodes import (
     ConstantDeclNode,
     AssignmentNode,
     IfNode,
+    InlineBlockNode,
 )
 
 
 def dump_ast(node, indent=0):
     prefix = "  " * indent
+
+    if isinstance(node, InlineBlockNode):
+        lines = [f"{prefix}InlineBlock"]
+
+        for statement in node.statements:
+            lines.append(dump_ast(statement, indent + 1))
+
+        return "\n".join(lines)
 
     if isinstance(node, ProgramNode):
         lines = [f"{prefix}Program"]

@@ -1,0 +1,9 @@
+route helper(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+route unused(🟢 x) -> 🟢 {
+    arrive helper(x)
+}
+
+print(30)

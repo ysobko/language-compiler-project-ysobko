@@ -8,6 +8,7 @@ from parser import Parser
 from ast_dump import dump_ast
 from semantic import SemanticAnalyzer
 from codegen import LLVMCodeGenerator
+from optimizer import ASTOptimizer
 
 
 def main():
@@ -45,6 +46,12 @@ def main():
         help="LLVM IR output file"
     )
 
+    argument_parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Optimize the AST before LLVM code generation"
+    )
+
     args = argument_parser.parse_args()
 
     if args.input:
@@ -63,11 +70,22 @@ def main():
         tokens = Lexer(source).tokenize()
         ast = Parser(tokens).parse_program()
 
-        if args.ast:
+        # Preserve the original --ast behavior.
+        if args.ast and not args.optimize:
             print(dump_ast(ast))
             return
 
+        # Check the original program before optimization.
         symbols = SemanticAnalyzer().analyze(ast)
+
+        if args.optimize:
+            ast = ASTOptimizer().optimize(ast)
+            # Rebuild symbols for the optimized program.
+            symbols = SemanticAnalyzer().analyze(ast)
+
+        if args.ast:
+            print(dump_ast(ast))
+            return
 
         generator = LLVMCodeGenerator(symbols)
         llvm_ir = generator.ir_text(ast)

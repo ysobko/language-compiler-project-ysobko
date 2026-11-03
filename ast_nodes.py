@@ -173,3 +173,8 @@ class ExpressionStmtNode(StmtNode):
 @dataclass
 class PrintNode(StmtNode):
     value: ExprNode
+
+@dataclass
+class InlineBlockNode(StmtNode):
+    """Internal optimizer node containing statements in a local scope."""
+    statements: list[StmtNode]

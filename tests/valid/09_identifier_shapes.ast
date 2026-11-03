@@ -8,6 +8,6 @@ Program
   MutableDecl 🚦 road_42_open
     Boolean true
   Assignment _current_speed
-    Identifier MAX_DISTANCE
+    Identifier speed2
   Assignment road_42_open
     Boolean false

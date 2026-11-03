@@ -612,3 +612,405 @@ python3 run_tests.py
 The test script compiles the interactive program into a native executable
 using `llc` and `clang`, then compares its output with the corresponding
 `.expected` files.
+
+---
+
+## Stage 3 — Task 2: AST Optimizations
+
+The Traffica compiler implements three AST optimizations:
+
+1. Unused variable removal.
+2. Unused function removal.
+3. Function inlining.
+
+All optimizations are optional and are enabled using the `--optimize` flag.
+
+The optimizer works on the AST after the initial semantic analysis and before LLVM IR generation. After optimization, semantic analysis runs again to validate the modified AST.
+
+### How to Run the Optimizer
+
+Compile a program normally:
+
+```bash
+python3 compiler.py tests/optimizer/inlining_simple.src -o before.ll
+```
+
+Compile the same program with optimization:
+
+```bash
+python3 compiler.py tests/optimizer/inlining_simple.src --optimize -o after.ll
+```
+
+View the original AST:
+
+```bash
+python3 compiler.py tests/optimizer/inlining_simple.src --ast
+```
+
+View the optimized AST:
+
+```bash
+python3 compiler.py tests/optimizer/inlining_simple.src --optimize --ast
+```
+
+### Optimization 1: Unused Variable Removal
+
+The optimizer removes variable declarations whose values are never used.
+
+It repeats the removal process until no additional unused variables can be removed. This is necessary because removing one declaration may make another declaration unused.
+
+The optimizer considers variable scopes and shadowing. Variables with the same name in different scopes are treated as separate declarations.
+
+**Example:**
+
+```text
+go 🟢 unused <- 100
+go 🟢 result <- 20
+print(result)
+```
+
+**Optimized AST:**
+
+```text
+Program
+  MutableDecl 🟢 result
+    Integer 20
+  Print
+    Identifier result
+```
+
+The declaration of `unused` disappears because its value is never read.
+
+#### Preserving Side Effects
+
+Removing an unused variable must not remove side effects from its initializer.
+
+For example:
+
+```text
+go 🟢 unused <- scan()
+print(10)
+```
+
+**Optimized AST:**
+
+```text
+Program
+  ExpressionStmt
+    Scan
+  Print
+    Integer 10
+```
+
+The unused variable is removed, but `scan()` remains because it reads input.
+
+The optimizer also preserves expressions containing function calls that may have side effects.
+
+### Optimization 2: Unused Function Removal
+
+The optimizer removes functions that are not reachable from the main program.
+
+This includes functions that are only called by other unused functions.
+
+**Example:**
+
+```text
+route helper(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+route unused(🟢 x) -> 🟢 {
+    arrive helper(x)
+}
+
+print(30)
+```
+
+**Optimized AST:**
+
+```text
+Program
+  Print
+    Integer 30
+```
+
+Both functions are removed because neither is reachable from the main program.
+
+The optimizer repeats this process until no additional unused functions remain.
+
+### Optimization 3: Function Inlining
+
+Function inlining replaces a function call with the body of the called function.
+
+The optimizer considers functions that are called exactly once.
+
+During inlining:
+
+1. Each parameter becomes a variable declaration initialized with the corresponding argument.
+2. Local declarations from the function body are copied to the call site.
+3. The final `arrive` expression replaces the original function call.
+4. Parameters and local variables are renamed to avoid name collisions.
+5. The original function is removed when it becomes unused.
+
+#### Simple Inlining Example
+
+**Original program:**
+
+```text
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+print(double(10))
+```
+
+**Optimized AST:**
+
+```text
+Program
+  InlineBlock
+    MutableDecl 🟢 _inline_1_x
+      Integer 10
+    Print
+      BinaryOp *
+        Identifier _inline_1_x
+        Integer 2
+```
+
+The call to `double(10)` is replaced with the calculation inside `main`.
+
+The parameter `x` becomes a local variable named `_inline_1_x`.
+
+The `InlineBlock` keeps the inserted declarations in their own scope.
+
+#### Nested Inlining and Name Collisions
+
+The optimizer also supports nested calls.
+
+For example:
+
+```text
+route addFive(🟢 x) -> 🟢 {
+    arrive x + 5
+}
+
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+go 🟢 x <- 100
+go 🟢 result <- double(addFive(10))
+
+print(x)
+print(result)
+```
+
+**Optimized AST:**
+
+```text
+Program
+  MutableDecl 🟢 x
+    Integer 100
+  MutableDecl 🟢 _inline_1_x
+    Integer 10
+  MutableDecl 🟢 _inline_2_x
+    BinaryOp +
+      Identifier _inline_1_x
+      Integer 5
+  MutableDecl 🟢 result
+    BinaryOp *
+      Identifier _inline_2_x
+      Integer 2
+  Print
+    Identifier x
+  Print
+    Identifier result
+```
+
+**Program output:**
+
+```text
+100
+30
+```
+
+Both functions are inlined, and their parameters receive unique names.
+
+The original variable `x` is not overwritten.
+
+### Supported Inlining Shapes
+
+The current implementation supports:
+
+- Non-recursive functions called exactly once.
+- Functions with parameters.
+- Functions containing local variable declarations followed by a final `arrive`.
+- Function bodies whose local initializers and final return expression use their parameters or previously declared local variables.
+- Calls inside supported expressions and variable initializers.
+- Calls in `print()` statements.
+- Nested function calls.
+- Global `go`, `hold`, and `sign` initializers.
+- Renaming parameters and local variables to avoid collisions.
+
+### Unsupported Inlining Shapes
+
+Some cases are intentionally left unchanged.
+
+**1. Recursive functions**
+
+Recursive functions are never inlined, including functions involved in indirect recursion.
+
+**2. Functions called more than once**
+
+The optimizer only considers functions called exactly once.
+
+**3. Early returns inside conditional statements**
+
+For example, functions containing `arrive` inside `check` branches are not inlined.
+
+**4. Complex function bodies**
+
+The current implementation does not inline function bodies containing unsupported control-flow statements or statements outside the supported declaration-and-final-return shape.
+
+**5. Expressions where inlining may change evaluation order**
+
+Inlining is skipped when moving calculations could change the order of expressions with side effects.
+
+For example:
+
+```text
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+print(scan() - double(scan()))
+```
+
+If the user enters `10` and then `3`, the correct result is:
+
+```text
+4
+```
+
+Moving the second `scan()` before the first one would change the result.
+
+Therefore, the optimizer keeps the function call in this case.
+
+Unsupported calls remain unchanged to preserve the original program behavior.
+
+### LLVM IR Before and After Inlining
+
+The following example uses:
+
+`tests/optimizer/inlining_simple.src`
+
+The complete generated LLVM IR files are available at:
+
+- `docs/optimization/before.ll`
+- `docs/optimization/after.ll`
+
+#### Before Optimization
+
+The compiler generates a separate function:
+
+```llvm
+define i32 @"traffica_double"(i32 %"x")
+{
+entry:
+  %"x.addr" = alloca i32
+  store i32 %"x", i32* %"x.addr"
+  %"x.value" = load i32, i32* %"x.addr"
+  %"arithmetic.checked" = call {i32, i1} @"llvm.smul.with.overflow.i32"(i32 %"x.value", i32 2)
+  %"arithmetic.result" = extractvalue {i32, i1} %"arithmetic.checked", 0
+  %"arithmetic.overflow" = extractvalue {i32, i1} %"arithmetic.checked", 1
+  br i1 %"arithmetic.overflow", label %"arithmetic.overflow.error", label %"arithmetic.continue"
+arithmetic.overflow.error:
+  call void @"abort"()
+  unreachable
+arithmetic.continue:
+  ret i32 %"arithmetic.result"
+}
+```
+
+The `main` function calls it:
+
+```llvm
+%"call.double" = call i32 @"traffica_double"(i32 10)
+```
+
+#### After Optimization
+
+The separate `traffica_double` function is removed.
+
+Its parameter and calculation are moved into `main`:
+
+```llvm
+%"_inline_1_x" = alloca i32
+store i32 10, i32* %"_inline_1_x"
+%"_inline_1_x.value" = load i32, i32* %"_inline_1_x"
+%"arithmetic.checked" = call {i32, i1} @"llvm.smul.with.overflow.i32"(i32 %"_inline_1_x.value", i32 2)
+%"arithmetic.result" = extractvalue {i32, i1} %"arithmetic.checked", 0
+```
+
+The result is passed directly to `printf` without calling `traffica_double`.
+
+The overflow check is still present, so inlining does not remove the compiler's arithmetic safety checks.
+
+### Optimization Tests
+
+Six optimizer tests are located in `tests/optimizer/`.
+
+| Test | Optimization | Purpose |
+|------|--------------|---------|
+| `unused_variable_simple` | Unused variables | Remove an unused variable |
+| `unused_variable_side_effect` | Unused variables | Preserve `scan()` after removing a declaration |
+| `unused_function_simple` | Unused functions | Remove an unused function |
+| `unused_function_chain` | Unused functions | Remove a chain of unreachable functions |
+| `inlining_simple` | Inlining | Replace a single function call |
+| `inlining_nested` | Inlining | Inline nested calls and avoid name collisions |
+
+Each test includes:
+
+- `.src` — source program.
+- `.ast.expected` — expected optimized AST.
+- `.expected` — expected program output.
+- `.input` — optional input for programs using `scan()`.
+
+The automated test runner:
+
+1. Compiles each program to an optimized AST.
+2. Compares the AST with its expected result.
+3. Compiles the program without optimization.
+4. Compiles the program with optimization.
+5. Executes both versions.
+6. Checks that both outputs match the expected output.
+
+Run all optimizer tests:
+
+```bash
+python3 tests/optimizer/run_optimizer_tests.py
+```
+
+**Test result: 6/6 optimizer tests passed.**
+
+### Regression Testing
+
+The existing compiler test suite can be run with:
+
+```bash
+python3 run_tests.py
+```
+
+The latest test results were:
+
+- **69/69** standard tests passed.
+- **69/69** regression tests passed with `--optimize`.
+- **6/6** optimizer-specific tests passed.
+
+The optimized regression run checks successful compilation of valid
+AST-only programs, expected diagnostics for invalid programs, and
+expected output for end-to-end and interactive programs.
+
+These results confirm that the supported optimizations preserve
+the expected program behavior in the tested cases.
+

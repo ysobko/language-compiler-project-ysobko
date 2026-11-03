@@ -1,3 +1,4 @@
+from ast_nodes import InlineBlockNode
 from llvmlite import ir
 
 from ast_nodes import (
@@ -984,7 +985,6 @@ class LLVMCodeGenerator:
 
     def generate_if(self, node: IfNode):
         condition = self.generate_expression(node.condition)
-
         function = self.builder.function
 
         then_block = function.append_basic_block("check.then")
@@ -999,8 +999,14 @@ class LLVMCodeGenerator:
                 else_block
             )
 
-            # Then branch
+            # Save the variables visible before entering either branch.
+            outer_variables = self.local_variables.copy()
+            outer_types = self.local_variable_types.copy()
+
+            # Then branch has its own scope.
             self.builder.position_at_end(then_block)
+            self.local_variables = outer_variables.copy()
+            self.local_variable_types = outer_types.copy()
 
             for statement in node.then_body:
                 if self.builder.block.is_terminated:
@@ -1012,8 +1018,10 @@ class LLVMCodeGenerator:
             if not then_terminated:
                 self.builder.branch(end_block)
 
-            # Detour branch
+            # Detour branch has a separate scope.
             self.builder.position_at_end(else_block)
+            self.local_variables = outer_variables.copy()
+            self.local_variable_types = outer_types.copy()
 
             for statement in node.else_body:
                 if self.builder.block.is_terminated:
@@ -1025,7 +1033,10 @@ class LLVMCodeGenerator:
             if not else_terminated:
                 self.builder.branch(end_block)
 
-            # If both branches returned, the continuation is unreachable.
+            # Restore the outer scope.
+            self.local_variables = outer_variables
+            self.local_variable_types = outer_types
+
             if then_terminated and else_terminated:
                 self.builder.position_at_end(end_block)
                 self.builder.unreachable()
@@ -1034,8 +1045,7 @@ class LLVMCodeGenerator:
 
             return
 
-        # check without detour always needs a continuation,
-        # because the condition may be false.
+        # A check without detour still needs a continuation.
         end_block = function.append_basic_block("check.end")
 
         self.builder.cbranch(
@@ -1043,6 +1053,9 @@ class LLVMCodeGenerator:
             then_block,
             end_block
         )
+
+        outer_variables = self.local_variables.copy()
+        outer_types = self.local_variable_types.copy()
 
         self.builder.position_at_end(then_block)
 
@@ -1053,6 +1066,10 @@ class LLVMCodeGenerator:
 
         if not self.builder.block.is_terminated:
             self.builder.branch(end_block)
+
+        # Variables declared inside the branch are no longer visible.
+        self.local_variables = outer_variables
+        self.local_variable_types = outer_types
 
         self.builder.position_at_end(end_block)
 
@@ -1281,6 +1298,20 @@ class LLVMCodeGenerator:
         )
 
     def generate_statement(self, node):
+        if isinstance(node, InlineBlockNode):
+            previous_variables = self.local_variables.copy()
+            previous_types = self.local_variable_types.copy()
+
+            try:
+                for statement in node.statements:
+                    if self.builder.block.is_terminated:
+                        break
+                    self.generate_statement(statement)
+            finally:
+                self.local_variables = previous_variables
+                self.local_variable_types = previous_types
+
+            return
         if isinstance(node, PrintNode):
             self.generate_print(node)
             return

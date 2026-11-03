@@ -1,0 +1,8 @@
+Program
+  InlineBlock
+    MutableDecl 🟢 _inline_1_x
+      Integer 10
+    Print
+      BinaryOp *
+        Identifier _inline_1_x
+        Integer 2

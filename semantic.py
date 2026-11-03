@@ -1,3 +1,4 @@
+from ast_nodes import InlineBlockNode
 from ast_nodes import (
     ProgramNode,
     IntegerNode,
@@ -130,6 +131,17 @@ class SemanticAnalyzer:
         )
 
     def analyze_statement(self, node):
+        if isinstance(node, InlineBlockNode):
+            previous_scope = self.scope
+            self.scope = Scope(parent=previous_scope)
+
+            try:
+                for statement in node.statements:
+                    self.analyze_statement(statement)
+            finally:
+                self.scope = previous_scope
+
+            return
         if isinstance(node, MutableDeclNode):
             self.analyze_declaration(node, mutable=True)
             return

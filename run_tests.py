@@ -10,8 +10,11 @@ VALID_DIR = ROOT / "tests" / "valid"
 INVALID_DIR = ROOT / "tests" / "invalid"
 
 
-def run_compiler(source_path, ast=False, output_path=None):
+def run_compiler(source_path, ast=False, output_path=None, optimize=False):
     command = [sys.executable, str(COMPILER)]
+
+    if optimize:
+        command.append("--optimize")
 
     if ast:
         command.append("--ast")
@@ -55,7 +58,7 @@ def run_ast_test(source_path):
     )
 
 
-def run_end_to_end_test(source_path):
+def run_end_to_end_test(source_path, optimize=False):
     expected_path = source_path.with_suffix(".expected")
     input_path = source_path.with_suffix(".in")
 
@@ -70,6 +73,7 @@ def run_end_to_end_test(source_path):
         compilation = run_compiler(
             source_path,
             output_path=ir_path,
+            optimize=optimize,
         )
 
         if compilation.returncode != 0:

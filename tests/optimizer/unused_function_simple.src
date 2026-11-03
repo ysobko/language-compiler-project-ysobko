@@ -1,0 +1,5 @@
+route unused(🟢 x) -> 🟢 {
+    arrive x + 10
+}
+
+print(20)

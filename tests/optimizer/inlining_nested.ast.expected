@@ -1,0 +1,17 @@
+Program
+  MutableDecl 🟢 x
+    Integer 100
+  MutableDecl 🟢 _inline_1_x
+    Integer 10
+  MutableDecl 🟢 _inline_2_x
+    BinaryOp +
+      Identifier _inline_1_x
+      Integer 5
+  MutableDecl 🟢 result
+    BinaryOp *
+      Identifier _inline_2_x
+      Integer 2
+  Print
+    Identifier x
+  Print
+    Identifier result

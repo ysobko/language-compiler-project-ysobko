@@ -1,0 +1,13 @@
+route addFive(🟢 x) -> 🟢 {
+    arrive x + 5
+}
+
+route double(🟢 x) -> 🟢 {
+    arrive x * 2
+}
+
+go 🟢 x <- 100
+go 🟢 result <- double(addFive(10))
+
+print(x)
+print(result)
