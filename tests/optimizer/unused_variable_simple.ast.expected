@@ -1,0 +1,5 @@
+Program
+  MutableDecl 🟢 result
+    Integer 20
+  Print
+    Identifier result

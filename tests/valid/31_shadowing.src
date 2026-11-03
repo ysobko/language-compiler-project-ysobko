@@ -1,0 +1,12 @@
+route test() -> 🟢 {
+    go 🟢 speed <- 60
+
+    check green ≡ green 🚥 {
+        go 🟢 speed <- 100
+        print(speed)
+    }
+
+    arrive speed
+}
+
+print(test())

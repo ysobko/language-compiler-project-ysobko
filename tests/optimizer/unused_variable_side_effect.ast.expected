@@ -1,0 +1,5 @@
+Program
+  ExpressionStmt
+    Scan
+  Print
+    Integer 10

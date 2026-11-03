@@ -1,0 +1,5 @@
+route square(🟢 x) -> 🟢 {
+arrive x * x
+}
+
+print(6 |> square)

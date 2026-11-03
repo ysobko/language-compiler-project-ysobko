@@ -1,0 +1,9 @@
+route double(🟢 x) -> 🟢 {
+arrive x * 2
+}
+
+route addFive(🟢 x) -> 🟢 {
+arrive x + 5
+}
+
+print((3 + 7) |> double |> addFive)

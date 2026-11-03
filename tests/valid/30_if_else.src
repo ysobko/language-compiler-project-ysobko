@@ -1,0 +1,8 @@
+go 🟢 speed <- 60
+hold 🟢 limit <- 90
+check speed ≠ limit 🚥 {
+speed <- limit
+} detour {
+speed <- 0
+}
+print(speed)

@@ -3,5 +3,5 @@ hold 🟢 speed2 <- 90
 go 🟢 _current_speed <- speed2
 go 🚦 road_42_open <- green
 
-_current_speed <- MAX_DISTANCE
+_current_speed <- speed2
 road_42_open <- red

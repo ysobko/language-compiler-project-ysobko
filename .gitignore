@@ -1,2 +1,13 @@
 __pycache__/
 *.pyc
+
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+
+# Generated LLVM and native files
+*.ll
+*.o
+test_piping
+

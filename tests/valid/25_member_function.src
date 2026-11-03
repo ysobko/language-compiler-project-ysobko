@@ -1,0 +1,9 @@
+map Counter {
+go 🟢 value
+route increment(🟢 amount) -> 🟢 {
+value <- value + amount
+arrive value
+}
+}
+go Counter c <- Counter{10}
+print(c.increment(5))

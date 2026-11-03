@@ -1,0 +1,32 @@
+map SpeedChecker {
+    hold 🟢 limit
+
+    route isDifferentFromLimit(🟢 speed) -> 🚦 {
+        check speed ≠ limit 🚥 {
+            arrive green
+        } detour {
+            arrive red
+        }
+    }
+}
+
+route addFive(🟢 speed) -> 🟢 {
+    arrive speed + 5
+}
+
+route double(🟢 speed) -> 🟢 {
+    arrive speed * 2
+}
+
+print("Enter car speed:")
+go 🟢 speed <- scan()
+
+go 🟢 adjustedSpeed <- speed |> addFive |> double
+
+go SpeedChecker checker <- SpeedChecker{60}
+
+print("Adjusted speed:")
+print(adjustedSpeed)
+
+print("Speed differs from limit:")
+print(checker.isDifferentFromLimit(adjustedSpeed))
